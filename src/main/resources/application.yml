@@ -1,0 +1,53 @@
+#通用配置
+server:
+  port: 8084 #配置端口
+  tomcat.uri-encoding: UTF-8
+  #配置项目名
+  servlet:
+    context-path: /gps
+    session:
+      timeout: 1800S
+  ##  error: whitelabel: enabled: false
+spring:
+  profiles:
+    active: dev #设置开发环境
+  devtools:
+    restart:
+      enabled: true #设置开启热部署
+  jmx:
+    enabled: false
+  thymeleaf:
+    prefix: classpath:/templates/
+    check-template-location: true
+    suffix: .html
+    encoding: UTF-8
+    mode: LEGACYHTML5
+    cache: false
+  servlet:
+    multipart:
+      enabled: true
+      maxFileSize: 10MB
+      maxRequestSize: 10MB
+   # 404 交给异常处理器处理
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+
+logging:
+  level:
+    com.along.gps.dao: debug
+
+mybatis:
+  mapper-locations: classpath*:com/along/gps/dao/*Dao.java
+  type-aliases-package: com.along.gps.entity
+  configuration:
+    mapUnderscoreToCamelCase: true
+
+pagehelper:
+  helper-dialect: mysql
+  params: count=countSql
+  reasonable: true
+  support-methods-arguments: true
+
+
