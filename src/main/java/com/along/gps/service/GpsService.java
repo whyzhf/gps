@@ -1,6 +1,7 @@
 package com.along.gps.service;
 
 import com.along.gps.entity.OutboundRoadlog;
+import com.along.gps.entity.TaskEquip;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,7 @@ public interface GpsService {
 
 	String getPrisoner( String id);
 
-	String getEquipByTaskId( Integer taskId);
+	List<TaskEquip>  getEquipByTaskId(Integer taskId);
 
 	String getPolice(String id);
 	Integer getTaskByEquipId(String card);

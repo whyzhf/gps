@@ -106,7 +106,7 @@ public class GpsServer {
 
 								// 去掉前后空格
 								// addClient(sc, sb.toString().trim());
-								saveMsgToLog(sc, sb.toString().trim());
+								//saveMsgToLog(sc, sb.toString().trim());
 								//saveData(sb.toString().trim());
 								// System.out.println(sb.toString().trim());
 							}
@@ -200,14 +200,12 @@ public class GpsServer {
 
 										//数据处理
 										GpsDescData gpsDescData = httpData2(hexStr);
-									/*	new Thread(()->{
-											try {
-												Thread.sleep(5000);
-												saveDataBySql();
-											} catch (InterruptedException e) {
-												e.printStackTrace();
+										new Thread(()->{
+											saveMsgToLog(ctx,hexStr);
+											if (gpsDescData!=null) {
+												saveDataToLog(gpsDescData);
 											}
-										}).start();*/
+										}).start();
 
 										System.out.println(Math.random()+"："+WarpData( hexStr)+"::"+hexStr);
 										if (gpsDescData!=null) {

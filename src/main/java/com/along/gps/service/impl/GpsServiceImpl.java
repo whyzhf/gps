@@ -2,6 +2,7 @@ package com.along.gps.service.impl;
 
 import com.along.gps.dao.GpsDao;
 import com.along.gps.entity.OutboundRoadlog;
+import com.along.gps.entity.TaskEquip;
 import com.along.gps.service.GpsService;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,7 @@ public class GpsServiceImpl implements GpsService {
 	}
 
 	@Override
-	public String getEquipByTaskId(Integer taskId) {
+	public List<TaskEquip>  getEquipByTaskId(Integer taskId) {
 		return gpsDao.getEquipByTaskId(taskId);
 	}
 

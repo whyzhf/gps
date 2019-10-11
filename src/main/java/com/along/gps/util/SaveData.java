@@ -3,6 +3,7 @@ package com.along.gps.util;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.along.gps.controller.WebSocketController;
 import com.along.gps.dao.GpsDao;
 import com.along.gps.entity.GpsDescData;
@@ -183,17 +184,18 @@ public class SaveData  {
 	 *
 	 * @param msg
 	 */
-	public synchronized static void saveMsgToLog(SocketChannel sc, String msg) {
+	public synchronized static void saveMsgToLog(ChannelHandlerContext ctx, String msg) {
 		String hexStr = msg;
 		String txt = ConvertData.getHexMsgToString(msg);
 		StringBuilder sb = new StringBuilder();
 
 		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-		String address = sc.socket().getInetAddress().getHostAddress();
-		String port = sc.socket().getPort() + "";
-		sb.append(time + ";");
-		sb.append(address + ";");
-		sb.append(port + ";");
+
+		String address = ctx.channel().remoteAddress()+"";
+
+		sb.append(time + " # ");
+		sb.append(address + " # ");
+
 		// sb.append();
 		Writer w = null;
 		BufferedWriter bw = null;
@@ -208,8 +210,8 @@ public class SaveData  {
 				dir.mkdirs();
 			}
 			// 写入文本
-			File f = new File(dir + "\\" + FileName);
-			File f1 = new File(dir + "\\" + FileName1);
+			File f = new File(dir + "/" + FileName);
+			File f1 = new File(dir + "/" + FileName1);
 			if (!f.exists()) {
 				f.createNewFile();
 			}
@@ -240,5 +242,50 @@ public class SaveData  {
 		}
 
 	}
+	/**
+	 * 将数据写入日志文件
+	 *
+	 * @param msg
+	 */
+	public synchronized static void saveDataToLog( GpsDescData msg) {
+		Writer w = null;
+		BufferedWriter bw = null;
+		Writer w1 = null;
+		BufferedWriter bw1 = null;
+		try {
+			String FileName = msg.getOutboundRoadlog().getTaskId() + "-json.txt";
+
+			//File dir = new File(SysUtil.WEB_DATA_LOCATION);
+			File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			// 写入文本
+			File f = new File(dir + "/" + FileName);
+
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			w = new FileWriter(f, true);
+			bw = new BufferedWriter(w);
+			bw.write(JSON.toJSONString(msg)+ "\r\n");
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				bw.close();
+				w.close();
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+
+	}
+/****************************************************************/
 
 }

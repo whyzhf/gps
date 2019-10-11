@@ -60,6 +60,12 @@
 			<artifactId>netty-all</artifactId>
 			<version>4.1.41.Final</version>
 		</dependency>
+		<!-->缓存<-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+			<version>2.0.1.RELEASE</version>
+		</dependency>
 
 	<!--	<dependency>
 		<groupId>org.yeauty</groupId>
@@ -87,7 +93,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>gps</finalName>
+		<finalName>gpsdemo</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
