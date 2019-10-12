@@ -1,7 +1,9 @@
 package com.along.gps.util;
 
 import javax.websocket.Session;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -11,5 +13,5 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SystemUtil {
     //记录请求用户角色
-    public static Map<String,Session> sessionmap = new ConcurrentHashMap<>();
+    public static Map<String, Set<Session>> sessionmap = new ConcurrentHashMap<>();
 }

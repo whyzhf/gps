@@ -190,14 +190,11 @@ public class GpsServer {
 									try {
 										byte[] data = new byte[bf.readableBytes()];
 										bf.readBytes(data);
-
 										for (int i = 0; i < data.length; i++) {
 											sb.append(ConvertData.byteToHex(data[i]) + " ");
 										}
-
 										// 转义
 										String hexStr = ConvertData.replaceData(sb.toString().trim());
-
 										//数据处理
 										GpsDescData gpsDescData = httpData2(hexStr);
 										new Thread(()->{
@@ -206,8 +203,6 @@ public class GpsServer {
 												saveDataToLog(gpsDescData);
 											}
 										}).start();
-
-										System.out.println(Math.random()+"："+WarpData( hexStr)+"::"+hexStr);
 										if (gpsDescData!=null) {
 											WebSocketController.sendMessage2(gpsDescData);
 										}

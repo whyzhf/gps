@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.along.gps.controller.WebSocketController;
 import com.along.gps.dao.GpsDao;
+import com.along.gps.entity.GPS;
 import com.along.gps.entity.GpsDescData;
 import com.along.gps.entity.OutboundRoadlog;
 import com.along.gps.service.GpsService;
@@ -81,13 +82,14 @@ public class SaveData  {
 	}
 	private static OutboundRoadlog toEntity(String data) {
 		String[] arr = data.split(";");
+		GPS gps = GPSConverterUtils.gps84_To_Gcj02(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
 		OutboundRoadlog gd = new OutboundRoadlog();
 		gd.setUptime(arr[9]);
 		gd.setDirection(Short.parseShort(arr[8]));
 		gd.setLat(arr[1]);
 		gd.setLot(arr[2]);
-		gd.setLatitude(new BigDecimal(arr[4]));
-		gd.setLongitude(new BigDecimal(arr[5]));
+		gd.setLatitude(new BigDecimal(gps.getLat()+""));
+		gd.setLongitude(new BigDecimal(gps.getLon()+""));
 		gd.setSpeed(Short.parseShort(arr[7]));
 		gd.setEquipmentId(1);//id:需要编号做匹配
 		gd.setEquipmentCardId(arr[0]);
@@ -140,6 +142,7 @@ public class SaveData  {
 
 		String str=WarpData( hexData);
 		if (str.split(";").length>8) {
+
 			OutboundRoadlog or = toEntity(str);
 			or.setEquipmentId(saveData.gpsService.getEquipId(or.getEquipmentCardId()));
 			list.add(or);
@@ -163,7 +166,7 @@ public class SaveData  {
 	}
 
 	//保存到数据库
-	//@Scheduled(fixedRate = 10000)
+//	@Scheduled(fixedRate = 10000)
 	public static void saveDataBySql(){
 		/*List<OutboundRoadlog> list=new ArrayList<>();
 		GPS_DATA.forEach((K,V)->{
@@ -204,6 +207,7 @@ public class SaveData  {
 		try {
 			String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-json.txt";
 			String FileName1 = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-hex.txt";
+
 			File dir = new File(SysUtil.WEB_LOG_LOCATION);
 
 			if (!dir.exists()) {
@@ -253,10 +257,10 @@ public class SaveData  {
 		Writer w1 = null;
 		BufferedWriter bw1 = null;
 		try {
-			String FileName = msg.getOutboundRoadlog().getTaskId() + "-json.txt";
+			String FileName = msg.getOutboundRoadlog().getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
 
-			//File dir = new File(SysUtil.WEB_DATA_LOCATION);
-			File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
+			File dir = new File(SysUtil.WEB_DATA_LOCATION);
+			//File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
