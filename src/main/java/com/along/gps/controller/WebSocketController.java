@@ -101,19 +101,21 @@ public class WebSocketController   {
 
     public static void sendMessage2(GpsDescData gdd)  {
         Set<Session> sessionSet= SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId()+"");
-        for (Session session : sessionSet) {
-            if (session != null && session.isOpen() && taskId.equals(gdd.getOutboundRoadlog().getTaskId() + "")) {
-                try {
-                    Map<String, GpsDescData> data = new HashMap<>();
-                    data.put("data", gdd);
-                    synchronized (session) {
-                        session.getBasicRemote().sendObject(data);
-                        System.out.println("已发送数据" + JSON.toJSONString(data));
+        if (sessionSet!=null) {
+            for (Session session : sessionSet) {
+                if (session != null && session.isOpen() && taskId.equals(gdd.getOutboundRoadlog().getTaskId() + "")) {
+                    try {
+                        Map<String, GpsDescData> data = new HashMap<>();
+                        data.put("data", gdd);
+                        synchronized (session) {
+                            session.getBasicRemote().sendObject(data);
+                            System.out.println("已发送数据" + JSON.toJSONString(data));
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (EncodeException e) {
+                        e.printStackTrace();
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (EncodeException e) {
-                    e.printStackTrace();
                 }
             }
         }

@@ -5,6 +5,7 @@ import com.along.gps.entity.GpsDescData;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -18,6 +19,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -166,7 +169,7 @@ public class GpsServer {
 	 */
 
 	public void openNettyServer(int port) {
-
+		ContextMap=new ConcurrentHashMap<>();
 		EventLoopGroup group = new NioEventLoopGroup();// 连接服务对象
         EventLoopGroup workGroup = new NioEventLoopGroup();// 读写服务对象
 		try {
@@ -177,7 +180,6 @@ public class GpsServer {
 					.childOption(ChannelOption.SO_KEEPALIVE, true)//socketchannel的设置,维持链接的活跃，清除死链接
 					.childOption(ChannelOption.TCP_NODELAY, true)//socketchannel的设置,关闭延迟发送
 					.childHandler(new ChannelInitializer<io.netty.channel.socket.SocketChannel>() {
-
 						@Override
 						public void initChannel(io.netty.channel.socket.SocketChannel ch) throws Exception {
 							// ch.pipeline().addLast(new
@@ -195,16 +197,24 @@ public class GpsServer {
 										}
 										// 转义
 										String hexStr = ConvertData.replaceData(sb.toString().trim());
+										saveLog(hexStr);
 										//数据处理
-										GpsDescData gpsDescData = httpData2(hexStr);
-										new Thread(()->{
-											saveMsgToLog(ctx,hexStr);
-											if (gpsDescData!=null) {
-												saveDataToLog(gpsDescData);
+										if (hexStr.startsWith("7E 02 00")) {//定位信息
+											GpsDescData gpsDescData = httpData2(hexStr);
+											new Thread(() -> {
+												saveMsgToLog(ctx, hexStr);
+												if (gpsDescData != null) {
+													saveDataToLog(gpsDescData);
+												}
+											}).start();
+
+											if (gpsDescData != null) {
+												WebSocketController.sendMessage2(gpsDescData);
+
 											}
-										}).start();
-										if (gpsDescData!=null) {
-											WebSocketController.sendMessage2(gpsDescData);
+											if (ContextMap.get(ctx)==null){
+												ContextMap.put(ctx,gpsDescData.getEquip());
+											}
 										}
 									} catch (Exception ex) {
 										ex.printStackTrace();
@@ -224,7 +234,8 @@ public class GpsServer {
 								 */
 								@Override
 								public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-
+									System.out.println(ctx.channel().remoteAddress() + "->tcp断开连接");
+									ContextMap.remove(ctx);
 								}
 
 								@Override
@@ -240,7 +251,9 @@ public class GpsServer {
 								public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 										throws Exception {
 									cause.printStackTrace();
+									System.out.println(ctx.channel().remoteAddress() + "->tcp异常:断开连接");
 									ctx.close();// 关闭客户端
+									ContextMap.remove(ctx);
 								}
 
 								@Override
@@ -285,4 +298,27 @@ public class GpsServer {
 		}
 	}
 
+	/***********************************发送数据*****************************************/
+	//保存每个设备的连接通道
+	private static Map<ChannelHandlerContext,String> ContextMap=null;
+	public static void send(String card,byte[] order) {
+		System.out.println("开始send数据...");
+		ChannelHandlerContext ctx=getKey(ContextMap,card);
+		if(ctx!=null) {
+			//将命令转换成ByteBuf
+			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
+			//发送命令
+			ctx.writeAndFlush(byteBuf);
+
+		}
+	}
+	private static ChannelHandlerContext getKey(Map<ChannelHandlerContext,String> map,String value){
+		ChannelHandlerContext key=null;
+		for (Map.Entry<ChannelHandlerContext, String> entry : map.entrySet()) {
+			if(value.equals(entry.getValue())){
+				key=entry.getKey();
+			}
+		}
+		return key;
+	}
 }

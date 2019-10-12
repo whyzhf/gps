@@ -291,5 +291,45 @@ public class SaveData  {
 
 	}
 /****************************************************************/
+public  synchronized static void saveLog( String msg) {
+	Writer w = null;
+	BufferedWriter bw = null;
+	Writer w1 = null;
+	BufferedWriter bw1 = null;
+	try {
+		String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-All.txt";
+
+		File dir = new File(SysUtil.WEB_DATA_LOCATION);
+		//File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
+		// 写入文本
+		File f = new File(dir + "/" + FileName);
+
+		if (!f.exists()) {
+			f.createNewFile();
+		}
+		w = new FileWriter(f, true);
+		bw = new BufferedWriter(w);
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+		bw.write(time+ " ## " +msg+ "\r\n");
+
+	} catch (IOException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} finally {
+		try {
+			bw.close();
+			w.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+}
 
 }
