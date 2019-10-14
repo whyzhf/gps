@@ -1,6 +1,7 @@
 package com.along.gps.util;
 
 import com.along.gps.controller.WebSocketController;
+import com.along.gps.controller.WebSocketOrderController;
 import com.along.gps.entity.GpsDescData;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -197,6 +198,9 @@ public class GpsServer {
 										}
 										// 转义
 										String hexStr = ConvertData.replaceData(sb.toString().trim());
+
+										WebSocketController.sendMessageDemo2("接收到的消息："+ hexStr);
+
 										saveLog(hexStr);
 										//数据处理
 										if (hexStr.startsWith("7E 02 00")) {//定位信息
@@ -211,10 +215,11 @@ public class GpsServer {
 											if (gpsDescData != null) {
 												WebSocketController.sendMessage2(gpsDescData);
 
+												if (ContextMap.get(ctx)==null){
+													ContextMap.put(ctx,gpsDescData.getEquip());
+												}
 											}
-											if (ContextMap.get(ctx)==null){
-												ContextMap.put(ctx,gpsDescData.getEquip());
-											}
+
 										}
 									} catch (Exception ex) {
 										ex.printStackTrace();
@@ -300,16 +305,16 @@ public class GpsServer {
 
 	/***********************************发送数据*****************************************/
 	//保存每个设备的连接通道
-	private static Map<ChannelHandlerContext,String> ContextMap=null;
+	public static Map<ChannelHandlerContext,String> ContextMap=null;
 	public static void send(String card,byte[] order) {
 		System.out.println("开始send数据...");
+		order[0]=(byte)0XAA;
 		ChannelHandlerContext ctx=getKey(ContextMap,card);
 		if(ctx!=null) {
 			//将命令转换成ByteBuf
 			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
 			//发送命令
 			ctx.writeAndFlush(byteBuf);
-
 		}
 	}
 	private static ChannelHandlerContext getKey(Map<ChannelHandlerContext,String> map,String value){

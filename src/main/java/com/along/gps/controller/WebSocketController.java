@@ -24,7 +24,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import static com.along.gps.util.GpsServer.send;
 import static com.along.gps.util.SaveData.ClearGpsData;
+import static com.along.gps.util.SaveData.read;
 
 
 /**
@@ -78,6 +80,9 @@ public class WebSocketController   {
         webSocketSet.add(this);
        // sendMessage(this.taskId);
        // ClearGpsData();
+        if(taskId.equals("549")) {
+            sendMessageDemo();
+        }
     }
 
     @OnClose
@@ -92,13 +97,40 @@ public class WebSocketController   {
     public void onMessage(String message, Session session) {
        // sendMessage();
        // sendMessage(this.taskId);
+        send(taskId,hexStringToByteArray(message));
     }
 
     @OnError
     public void onError(Session session, Throwable error) {
         System.out.println(("连接出错"));
+        error.printStackTrace();
     }
+    public static void sendMessageDemo2(String str)  {
+        if (session != null && session.isOpen() && taskId.length()>10) {
+            synchronized (session) {
+                //session.getBasicRemote().sendObject(data);
+                try {
+                    session.getBasicRemote().sendText(str);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    public static void sendMessageDemo()  {
+        Set<Session> sessionSet= SystemUtil.sessionmap.get("549");
+        if (sessionSet!=null) {
+            for (Session session : sessionSet) {
+                if (session != null && session.isOpen()) {
+                    synchronized (session) {
+                        //session.getBasicRemote().sendObject(data);
+                        read(session);
+                    }
 
+                }
+            }
+        }
+    }
     public static void sendMessage2(GpsDescData gdd)  {
         Set<Session> sessionSet= SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId()+"");
         if (sessionSet!=null) {
@@ -109,7 +141,7 @@ public class WebSocketController   {
                         data.put("data", gdd);
                         synchronized (session) {
                             session.getBasicRemote().sendObject(data);
-                            System.out.println("已发送数据" + JSON.toJSONString(data));
+                           // System.out.println("已发送数据" + JSON.toJSONString(data));
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -191,4 +223,21 @@ public class WebSocketController   {
     /*public static void setApplicationContext(ApplicationContext applicationContext) {
         WebSocketController.applicationContext = applicationContext;
     }*/
+    /**
+     * 16进制表示的字符串转换为字节数组
+     *
+     * @param hexString 16进制表示的字符串
+     * @return byte[] 字节数组
+     */
+    public static byte[] hexStringToByteArray(String hexString) {
+        hexString = hexString.replaceAll(" ", "");
+        int len = hexString.length();
+        byte[] bytes = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            // 两位一组，表示一个字节,把这样表示的16进制字符串，还原成一个字节
+            bytes[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4) + Character
+                    .digit(hexString.charAt(i + 1), 16));
+        }
+        return bytes;
+    }
 }

@@ -7,6 +7,7 @@ package com.along.gps.controller;
 
 
 import com.along.gps.service.GpsService;
+import com.along.gps.util.GpsServer;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
@@ -30,24 +31,11 @@ public class LoginController {
     @Resource
     private GpsService carService;
 
-    /**
-     * 判断Session是否过期 过期则返回登录页
-     *
-     * @param request
-     * @return
-     */
-    @RequestMapping(value = "")
-    public ModelAndView login(HttpServletRequest request) {
-        ModelAndView modelAndView=new ModelAndView();
-        modelAndView.setViewName("login");
-        System.out.println(carService.getPrisoner("009"));
-        return  modelAndView;
 
-    }
-    @RequestMapping(value = "login")
-    public String login2(HttpServletRequest request) {
-
-        return  "login";
+    @RequestMapping(value = "sendOrder")
+    public String login(HttpServletRequest request,byte[] order,String card ) {
+        GpsServer.send(card,order);
+        return  "";
 
     }
 

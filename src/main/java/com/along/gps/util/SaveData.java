@@ -19,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
 import java.io.*;
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
@@ -258,7 +260,6 @@ public class SaveData  {
 		BufferedWriter bw1 = null;
 		try {
 			String FileName = msg.getOutboundRoadlog().getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
-
 			File dir = new File(SysUtil.WEB_DATA_LOCATION);
 			//File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
 			if (!dir.exists()) {
@@ -291,45 +292,92 @@ public class SaveData  {
 
 	}
 /****************************************************************/
-public  synchronized static void saveLog( String msg) {
-	Writer w = null;
-	BufferedWriter bw = null;
-	Writer w1 = null;
-	BufferedWriter bw1 = null;
-	try {
-		String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-All.txt";
-
-		File dir = new File(SysUtil.WEB_DATA_LOCATION);
-		//File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
-		if (!dir.exists()) {
-			dir.mkdirs();
-		}
-		// 写入文本
-		File f = new File(dir + "/" + FileName);
-
-		if (!f.exists()) {
-			f.createNewFile();
-		}
-		w = new FileWriter(f, true);
-		bw = new BufferedWriter(w);
-		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-		bw.write(time+ " ## " +msg+ "\r\n");
-
-	} catch (IOException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	} finally {
+	public  synchronized static void saveLog( String msg) {
+		Writer w = null;
+		BufferedWriter bw = null;
+		Writer w1 = null;
+		BufferedWriter bw1 = null;
 		try {
-			bw.close();
-			w.close();
+			String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-All.txt";
+
+			File dir = new File(SysUtil.WEB_DATA_LOCATION);
+			//File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			// 写入文本
+			File f = new File(dir + "/" + FileName);
+
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			w = new FileWriter(f, true);
+			bw = new BufferedWriter(w);
+			String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+			bw.write(time+ " ## " +msg+ "\r\n");
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				bw.close();
+				w.close();
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 		}
 
 	}
 
-}
+	/***********************************************************************/
+	public static void read(Session session){
+		BufferedInputStream fis =null;
+		BufferedReader reader = null;
 
+		try {
+			File file = new File(SysUtil.LOCAL_DATA_LOCATION+"/548-2019-10-12-14-json.txt");
+			fis = new BufferedInputStream(new FileInputStream(file));
+			reader = new BufferedReader(new InputStreamReader(fis,"utf-8"),5*1024*1024);// 用5M的缓冲读取文本文件
+
+			String line = "";
+			int i=0;
+			long startTime = System.currentTimeMillis();
+			while((line = reader.readLine()) != null ){
+				//TODO: write your business
+				//	JSONObject.toJSONString(line)
+			//	JSONObject jsonObject = JSONObject.parseObject(line);
+				//System.out.println(JSONObject.parseObject(jsonObject.get("data") + "").get("outboundRoadlog"));
+				//System.out.println(i++);
+				/*Map<String, String> data = new HashMap<>();
+				data.put("data", line);*/
+				synchronized (session) {
+					if(session!=null)
+						session.getBasicRemote().sendText("{\"data\":"+line+"}");
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			long endTime = System.currentTimeMillis();
+			System.out.println("读取"+i+"条数据，运行时间:" + (endTime - startTime) + "ms");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				fis.close();
+				reader.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+	}
 }
