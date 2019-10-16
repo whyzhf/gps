@@ -14,4 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SystemUtil {
     //记录请求用户角色
     public static Map<String, Set<Session>> sessionmap = new ConcurrentHashMap<>();
+
+    //记录用户发送命令
+    public static Map<String,String> ORDERMAP = new ConcurrentHashMap<>();
+    //设备异常命令
+
 }

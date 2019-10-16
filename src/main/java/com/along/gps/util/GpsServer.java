@@ -1,7 +1,7 @@
 package com.along.gps.util;
 
 import com.along.gps.controller.WebSocketController;
-import com.along.gps.controller.WebSocketOrderController;
+import com.along.gps.entity.Equip;
 import com.along.gps.entity.GpsDescData;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -18,14 +18,18 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.along.gps.util.Order.EquipOrder.*;
+import static com.along.gps.util.Order.ErrorMsg.ERRORMAP;
+import static com.along.gps.util.Order.HexadecimalUtil.*;
+import static com.along.gps.util.Order.HexadecimalUtil.get10HexNum;
+import static com.along.gps.util.Order.OrderUtil.sendStatus;
 import static com.along.gps.util.SaveData.*;
+import static com.along.gps.util.SystemUtil.ORDERMAP;
 
 
 public class GpsServer {
@@ -198,28 +202,83 @@ public class GpsServer {
 										}
 										// 转义
 										String hexStr = ConvertData.replaceData(sb.toString().trim());
+										System.out.println(hexStr);
+										//WebSocketController.sendMessageDemo2("接收到的消息："+ hexStr);
 
-										WebSocketController.sendMessageDemo2("接收到的消息："+ hexStr);
+										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){//发送更新设备状态
+											selEquipStatus(ctx,ContextMap.get(ctx).getCard());
+										}
 
-										saveLog(hexStr);
 										//数据处理
 										if (hexStr.startsWith("7E 02 00")) {//定位信息
 											GpsDescData gpsDescData = httpData2(hexStr);
-											new Thread(() -> {
+											//加上设备状态
+											gpsDescData.setStauts(ContextMap.get(ctx).getPower()+" "+ ContextMap.get(ctx).getLock()+" "
+													+ ContextMap.get(ctx).getDemolition()+" "+ ContextMap.get(ctx).getClog()+" "
+													+ ContextMap.get(ctx).getOnAndoff()+" "+ ContextMap.get(ctx).getDeploy()+" ");
+											new Thread(() -> {//存储gps日志
 												saveMsgToLog(ctx, hexStr);
-												if (gpsDescData != null) {
+												if (gpsDescData != null) {//存储gps数据
 													saveDataToLog(gpsDescData);
 												}
 											}).start();
 
 											if (gpsDescData != null) {
+												//发送gps数据
 												WebSocketController.sendMessage2(gpsDescData);
-
-												if (ContextMap.get(ctx)==null){
-													ContextMap.put(ctx,gpsDescData.getEquip());
+												if (ContextMap.get(ctx)==null){//保存电话号码 通过电话号码判断定位信息发送到哪个任务
+													Equip equip=new Equip();
+													equip.setNum(gpsDescData.getEquip());
+													ContextMap.put(ctx,equip);
+												}else {
+													if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {
+													}else{
+														Equip equip=new Equip();
+														ContextMap.get(ctx).setNum(gpsDescData.getEquip());
+													}
 												}
 											}
 
+										}else if(hexStr.startsWith("A5 14")){//脚扣反馈   //通过设备ID发送到设备命令
+											//保存设备命令日志
+											saveOrderToLog(ctx, hexStr);
+											//解析出设备ID
+											String[]str=hexStr.split(" ");
+											String num=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
+											String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
+											//读取命令反馈
+											ORDERMAP.put(num+user+get10HexNum(str[10])+get10HexNum(str[11]),"FF".equals(str[12])?"成功":"失败");
+											if("12".equals(str[10])){
+												ContextMap.get(ctx).setPower(get10HexNum(str[11])+"%");
+												char[] sta=hex10Byte(Integer.parseInt(str[12],16));
+												ContextMap.get(ctx).setDeploy(sta[0]=='1'?"布防":"撤防");
+												ContextMap.get(ctx).setClog(sta[1]=='1'?"无遮挡":"被遮挡");
+												ContextMap.get(ctx).setDemolition(sta[2]=='1'?"被破拆":"无破拆");
+												ContextMap.get(ctx).setLock(sta[3]=='1'?"主锁打开":"主锁关闭");
+												ContextMap.get(ctx).setOnAndoff(sta[4]=='1'?"电击关闭":"电击启动");
+												ContextMap.get(ctx).setUptime(Calendar.getInstance());
+											}
+											if (ContextMap.get(ctx)==null){//保存设备编号
+												Equip equip=new Equip();
+												equip.setCard(num);
+												ContextMap.put(ctx,equip);
+											}else {
+												if (num.equals(ContextMap.get(ctx).getCard())) {
+												}else{
+													ContextMap.get(ctx).setCard(num);
+												}
+											}
+											if (ContextMap.get(ctx).getStatus()==0) {//初始化布防设置时间
+												FirConn(ctx,num);
+												ContextMap.get(ctx).setStatus(1);
+											}
+											if ("A0".equals(str[10])){//异常反馈
+												saveOrderToLog(ctx, hexStr);
+												//触发设备状态查询
+												selEquipStatus(ctx,num);
+												//发送预警信息
+												WebSocketController.sendMessage2(ErrorMsg(num,ERRORMAP.get(str[11])));
+											}
 										}
 									} catch (Exception ex) {
 										ex.printStackTrace();
@@ -232,6 +291,10 @@ public class GpsServer {
 								@Override
 								public void channelActive(ChannelHandlerContext ctx) throws Exception {
 									System.out.println(ctx.channel().remoteAddress() + "->tcp连接成功");
+									Equip equip=new Equip();
+									equip.setStatus(0);
+									ContextMap.put(ctx,equip);
+
 								}
 
 								/**
@@ -264,7 +327,7 @@ public class GpsServer {
 								@Override
 								public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 									// TODO Auto-generated method stub
-									System.out.println("msg:"+ msg);
+									//System.out.println("msg:"+ msg);
 									super.channelRead(ctx, msg);
 								}
 							});
@@ -305,25 +368,61 @@ public class GpsServer {
 
 	/***********************************发送数据*****************************************/
 	//保存每个设备的连接通道
-	public static Map<ChannelHandlerContext,String> ContextMap=null;
-	public static void send(String card,byte[] order) {
-		System.out.println("开始send数据...");
-		order[0]=(byte)0XAA;
-		ChannelHandlerContext ctx=getKey(ContextMap,card);
+	public static Map<ChannelHandlerContext, Equip> ContextMap=null;
+
+	public static void sendPower(String card,String userId) {
+		System.out.println("开始电击...");
+		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
+		String orderStr=sendOrder(card,userId);
+		byte[]order=hexStringToByteArray(orderStr);
 		if(ctx!=null) {
 			//将命令转换成ByteBuf
 			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
 			//发送命令
 			ctx.writeAndFlush(byteBuf);
+			//保存设备命令日志
+			saveOrderToLog(ctx, orderStr);
+			ORDERMAP.put(card+userId+"0115","0");
 		}
 	}
-	private static ChannelHandlerContext getKey(Map<ChannelHandlerContext,String> map,String value){
+	//通过手机号找通道
+	private static ChannelHandlerContext getKeyByNum(Map<ChannelHandlerContext,Equip> map,String value){
 		ChannelHandlerContext key=null;
-		for (Map.Entry<ChannelHandlerContext, String> entry : map.entrySet()) {
-			if(value.equals(entry.getValue())){
+		for (Map.Entry<ChannelHandlerContext, Equip> entry : map.entrySet()) {
+			if(value.equals(entry.getValue().getNum())){
 				key=entry.getKey();
 			}
 		}
 		return key;
+	}
+	//通过手机号找设备号
+	public static String getcardByNum(Map<ChannelHandlerContext,Equip> map,String value){
+		String card="";
+		if (map==null){
+			return card;
+		}
+		for (Map.Entry<ChannelHandlerContext, Equip> entry : map.entrySet()) {
+			if(value.equals(entry.getValue().getNum())){
+				card=entry.getValue().getCard();
+			}
+		}
+		return card;
+	}
+	//通过设备号找通道
+	private static ChannelHandlerContext getKeyByCard(Map<ChannelHandlerContext,Equip> map,String value){
+		ChannelHandlerContext key=null;
+		for (Map.Entry<ChannelHandlerContext, Equip> entry : map.entrySet()) {
+			if(value.equals(entry.getValue().getCard())){
+				key=entry.getKey();
+			}
+		}
+		return key;
+	}
+	/*************************************设备连接后操作******************************************************/
+	public static  void  FirConn(ChannelHandlerContext cxt,String equipId){
+		//获取到设备id
+		//开启布防，设置时间
+		//查询设备状态
+		 InitialSetup(cxt,equipId);
 	}
 }

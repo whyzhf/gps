@@ -30,6 +30,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.along.gps.util.DataUtil.getNowData;
+
 /**
  * 数据处理
  */
@@ -144,13 +146,12 @@ public class SaveData  {
 
 		String str=WarpData( hexData);
 		if (str.split(";").length>8) {
-
 			OutboundRoadlog or = toEntity(str);
 			or.setEquipmentId(saveData.gpsService.getEquipId(or.getEquipmentCardId()));
 			list.add(or);
 			GpsDescData gdd = new GpsDescData();
 			gdd.setEquip(or.getEquipmentCardId());
-			gdd.setPolice("");
+			gdd.setPolice(saveData.gpsService.getPolice(or.getEquipmentCardId()));
 			gdd.setPrisoner(saveData.gpsService.getPrisoner(or.getEquipmentCardId()));
 			gdd.setStauts("正常");
 			gdd.setType("");
@@ -162,7 +163,17 @@ public class SaveData  {
 		}
 
 	}
+	public static GpsDescData ErrorMsg(String cardId,String status){
+			GpsDescData gdd = new GpsDescData();
+			gdd.setEquip(cardId);
+			gdd.setPolice(saveData.gpsService.getPolice(cardId));
+			gdd.setPrisoner(saveData.gpsService.getPrisoner(cardId));
+			gdd.setStauts(status);
+			gdd.setType("");
+			gdd.setTime(getNowData("yyyy-MM-dd HH:mm:ss"));
+			return gdd;
 
+	}
 	public static void ClearGpsData(){
 		 GPS_DATA.clear();
 	}
@@ -240,6 +251,46 @@ public class SaveData  {
 				w.close();
 				bw1.close();
 				w1.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+
+	}
+
+	public synchronized static void saveOrderToLog(ChannelHandlerContext ctx, String msg) {
+		String hexStr = msg;
+		StringBuilder sb = new StringBuilder();
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+		String address = ctx.channel().remoteAddress()+"";
+		sb.append(time + " # ");
+		sb.append(address + " # ");
+		// sb.append();
+		Writer w = null;
+		BufferedWriter bw = null;
+		try {
+			String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-Order.txt";
+			File dir = new File(SysUtil.WEB_LOG_LOCATION);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			// 写入文本
+			File f = new File(dir + "/" + FileName);
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			w = new FileWriter(f, true);
+			bw = new BufferedWriter(w);
+			bw.write(sb.toString() + msg + "\r\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				bw.close();
+				w.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -339,7 +390,7 @@ public class SaveData  {
 		BufferedReader reader = null;
 
 		try {
-			File file = new File(SysUtil.LOCAL_DATA_LOCATION+"/548-2019-10-12-14-json.txt");
+			File file = new File(SysUtil.WEB_DATA_LOCATION+"/548-2019-10-12-14-json.txt");
 			fis = new BufferedInputStream(new FileInputStream(file));
 			reader = new BufferedReader(new InputStreamReader(fis,"utf-8"),5*1024*1024);// 用5M的缓冲读取文本文件
 
@@ -354,16 +405,29 @@ public class SaveData  {
 				//System.out.println(i++);
 				/*Map<String, String> data = new HashMap<>();
 				data.put("data", line);*/
-				synchronized (session) {
-					if(session!=null)
-						session.getBasicRemote().sendText("{\"data\":"+line+"}");
+
+				/*	Set<Session> sessionSet= SystemUtil.sessionmap.get("549");
+					if (sessionSet!=null) {
+						System.out.println("size:"+sessionSet.size());
+						for (Session session : sessionSet) {
+							if (session != null && session.isOpen()) {
+								synchronized (session) {*/
+									//session.getBasicRemote().sendObject(data);
+									session.getBasicRemote().sendText("{\"data\":"+line+"}");
+							/*	}
+							}
+						}
+					}else{
+						break;
+					}*/
+
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
-			}
+
 			long endTime = System.currentTimeMillis();
 			System.out.println("读取"+i+"条数据，运行时间:" + (endTime - startTime) + "ms");
 		} catch (IOException e) {

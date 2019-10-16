@@ -24,8 +24,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static com.along.gps.util.GpsServer.send;
-import static com.along.gps.util.SaveData.ClearGpsData;
+
 import static com.along.gps.util.SaveData.read;
 
 
@@ -61,11 +60,9 @@ public class WebSocketController   {
     private static Session session;
     private static String taskId;
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
-
-
     @OnOpen
     public void onOpen(Session session, @PathParam("taskId") String taskId) throws Exception {
-
+        System.out.println("open:"+session.getId());
         this.session = session;
         this.taskId=taskId;
         if(this.session.isOpen() &&  SystemUtil.sessionmap.get(taskId)!=null) {
@@ -81,7 +78,7 @@ public class WebSocketController   {
        // sendMessage(this.taskId);
        // ClearGpsData();
         if(taskId.equals("549")) {
-            sendMessageDemo();
+            sendMessageDemo(session);
         }
     }
 
@@ -89,6 +86,7 @@ public class WebSocketController   {
     public void onClose() {
         webSocketSet.remove(this);
         usermap.remove(this.session.getId());
+        System.out.println(("websocket连接关闭")+ session.getId());
       //  SystemUtil.sessionmap.clear();
         SystemUtil.sessionmap.get( this.taskId).remove(this.session);
     }
@@ -97,12 +95,16 @@ public class WebSocketController   {
     public void onMessage(String message, Session session) {
        // sendMessage();
        // sendMessage(this.taskId);
-        send(taskId,hexStringToByteArray(message));
+        //send(taskId,message);
     }
 
     @OnError
     public void onError(Session session, Throwable error) {
-        System.out.println(("连接出错"));
+        System.out.println(("websocket连接出错"+ session.getId()));
+        webSocketSet.remove(this);
+        usermap.remove(this.session.getId());
+        //  SystemUtil.sessionmap.clear();
+        SystemUtil.sessionmap.get(this.taskId).remove(this.session);
         error.printStackTrace();
     }
     public static void sendMessageDemo2(String str)  {
@@ -117,25 +119,16 @@ public class WebSocketController   {
             }
         }
     }
-    public static void sendMessageDemo()  {
-        Set<Session> sessionSet= SystemUtil.sessionmap.get("549");
-        if (sessionSet!=null) {
-            for (Session session : sessionSet) {
-                if (session != null && session.isOpen()) {
-                    synchronized (session) {
-                        //session.getBasicRemote().sendObject(data);
+    public static void sendMessageDemo(Session session)  {
                         read(session);
-                    }
-
-                }
-            }
-        }
     }
     public static void sendMessage2(GpsDescData gdd)  {
         Set<Session> sessionSet= SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId()+"");
         if (sessionSet!=null) {
             for (Session session : sessionSet) {
+                System.out.println(sessionSet.size()+"send:"+session.getId()+"##"+session.isOpen());
                 if (session != null && session.isOpen() && taskId.equals(gdd.getOutboundRoadlog().getTaskId() + "")) {
+
                     try {
                         Map<String, GpsDescData> data = new HashMap<>();
                         data.put("data", gdd);
@@ -223,21 +216,5 @@ public class WebSocketController   {
     /*public static void setApplicationContext(ApplicationContext applicationContext) {
         WebSocketController.applicationContext = applicationContext;
     }*/
-    /**
-     * 16进制表示的字符串转换为字节数组
-     *
-     * @param hexString 16进制表示的字符串
-     * @return byte[] 字节数组
-     */
-    public static byte[] hexStringToByteArray(String hexString) {
-        hexString = hexString.replaceAll(" ", "");
-        int len = hexString.length();
-        byte[] bytes = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            // 两位一组，表示一个字节,把这样表示的16进制字符串，还原成一个字节
-            bytes[i / 2] = (byte) ((Character.digit(hexString.charAt(i), 16) << 4) + Character
-                    .digit(hexString.charAt(i + 1), 16));
-        }
-        return bytes;
-    }
+
 }

@@ -39,7 +39,8 @@ public interface GpsDao {
 	@Select("select r.task_id from outbound_task_prisoner_rel r"+
 			" LEFT JOIN outbound_prisoner p on r.prisoner_id=p.id"+
 			" LEFT JOIN outbound_equipment e on p.equipment_id=e.id"+
-			" where e.card=#{card}")
+			" LEFT JOIN outbound_task t on r.task_id = t.id" +
+			" where e.card=#{card} and t.status=3 limit 1")
 	Integer getTaskByEquipId(@Param("card") String card);
 
 	@Cacheable(value = "getEquipId",key="#p0")
