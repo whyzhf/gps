@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
-    <title>轨迹回放</title>
+    <title>命令测试</title>
     <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
     <style>
         html, body, #container {
@@ -24,8 +24,8 @@
 </head>
 <body>
 <div id="msg"></div>
-<input type="submit" value="send" onclick="send()">
-<input type="textarea" id="text">
+<div><input type="submit" value="send" onclick="send()"></div>
+<div><input type="textarea" id="text"></div>
 
 <!--<div id="container"></div>
 <div class="input-card">
@@ -106,7 +106,7 @@
     }
 */
     var msg = document.getElementById("msg");
-    var wsServer = 'ws://120.77.252.208:8080/gps/WebSocket/548';
+    var wsServer = 'ws://120.77.252.208:8080/gps/WebSocket/-1';
   // var wsServer = 'ws://localhost:8084/gps/WebSocket/548';
     var websocket = new WebSocket(wsServer);
     //监听连接打开
@@ -117,7 +117,7 @@
 
     //监听服务器数据推送
     websocket.onmessage = function (evt) {
-        msg.innerHTML += "<br>" + evt.data;
+        msg.innerHTML += "<br>" +" send:" +evt.data;
     };
 
     //监听连接关闭

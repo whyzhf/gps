@@ -151,26 +151,32 @@ public class SaveData  {
 			list.add(or);
 			GpsDescData gdd = new GpsDescData();
 			gdd.setEquip(or.getEquipmentCardId());
-			gdd.setPolice(saveData.gpsService.getPolice(or.getEquipmentCardId()));
+			gdd.setPolice(saveData.gpsService.getPolice(or.getTaskId()+""));
 			gdd.setPrisoner(saveData.gpsService.getPrisoner(or.getEquipmentCardId()));
-			gdd.setStauts("正常");
+			gdd.setStauts("");
 			gdd.setType("");
 			gdd.setTime(or.getUptime());
 			gdd.setOutboundRoadlog(or);
+
 			return gdd;
 		}else{
 			return null;
 		}
 
 	}
-	public static GpsDescData ErrorMsg(String cardId,String status){
+	public static GpsDescData ErrorMsg(Integer taskId,String cardId,String status){
 			GpsDescData gdd = new GpsDescData();
 			gdd.setEquip(cardId);
+			gdd.setEquipCard(cardId);
 			gdd.setPolice(saveData.gpsService.getPolice(cardId));
 			gdd.setPrisoner(saveData.gpsService.getPrisoner(cardId));
 			gdd.setStauts(status);
 			gdd.setType("");
 			gdd.setTime(getNowData("yyyy-MM-dd HH:mm:ss"));
+			OutboundRoadlog or =new OutboundRoadlog();
+			or.setTaskId(taskId);
+			gdd.setOutboundRoadlog(or);
+			gdd.setErrorStatus(status);
 			return gdd;
 
 	}

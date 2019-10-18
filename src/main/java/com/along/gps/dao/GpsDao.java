@@ -16,13 +16,13 @@ public interface GpsDao {
 
 	@Cacheable(value = "getPrisoner",key="#p0")
 	@Select(" SELECT  CONCAT_WS(' ',p.name,p.card)\n" +
-			" FROM outboundmanage.outbound_prisoner  p \n" +
-			" LEFT JOIN outboundmanage.outbound_equipment e on e.id=p.equipment_id\n" +
+			" FROM outbound_prisoner  p \n" +
+			" LEFT JOIN outbound_equipment e on e.id=p.equipment_id\n" +
 			" where e.card=#{id}")
 	String getPrisoner(@Param("id") String id);
 
-	@Cacheable(value = "getPolice",key="#p0")
-	@Select(" SELECT  group_concat( CONCAT_WS(': ',p.name,p.card),' ')" +
+	@Cacheable(value = "getPolice",key="#p0" )
+	@Select(" SELECT  group_concat( CONCAT_WS(':',p.name,p.card),' ')" +
 			" FROM outbound_task_police_rel  r" +
 			" LEFT JOIN outbound_police p on r.police_id=p.id" +
 			" where r.task_id=#{id} and p.name IS NOT NULL")

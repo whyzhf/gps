@@ -7,6 +7,7 @@ import java.util.Date;
 public class Equip {
 	private String num;//设备编号
 	private String card;//手机号码
+	private Integer  taskId;//设备编号
 	private Integer status;//是否初始化设置
 	private String power="获取中";//电量状态
 	private String deploy="获取中";//布防状态
@@ -15,12 +16,14 @@ public class Equip {
 	private String demolition="获取中";//破拆状态
 	private String clog="获取中";//防塞状态
 	private Calendar uptime;//更新时间 如果now > uptime.add(Calendar.MINUTE, 30)?发送更新命令
+	private String errorStatus="无";//防塞状态
 
 	@Override
 	public String toString() {
 		return "Equip{" +
 				"num='" + num + '\'' +
 				", card='" + card + '\'' +
+				", taskId=" + taskId +
 				", status=" + status +
 				", power='" + power + '\'' +
 				", deploy='" + deploy + '\'' +
@@ -29,7 +32,24 @@ public class Equip {
 				", demolition='" + demolition + '\'' +
 				", clog='" + clog + '\'' +
 				", uptime=" + uptime +
+				", errorStatus='" + errorStatus + '\'' +
 				'}';
+	}
+
+	public String getErrorStatus() {
+		return errorStatus;
+	}
+
+	public void setErrorStatus(String errorStatus) {
+		this.errorStatus = errorStatus;
+	}
+
+	public Integer getTaskId() {
+		return taskId;
+	}
+
+	public void setTaskId(Integer taskId) {
+		this.taskId = taskId;
 	}
 
 	public String getDeploy() {

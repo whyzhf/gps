@@ -14,7 +14,7 @@ public class ErrorMsg {
 		ERRORMAP.put("14","绷带异常断开");
 		ERRORMAP.put("15","绷带异常恢复");
 		ERRORMAP.put("16","设备电量不足");
-		ERRORMAP.put("17","设备充满电（用于脚铐充满时通过串口反馈给充电宝和遥控器）");
+		ERRORMAP.put("17","设备充满电");
 		ERRORMAP.put("18","电击点遮挡");
 		ERRORMAP.put("19","电击点遮挡取消");
 		ERRORMAP.put("1A","电击失败");
@@ -39,7 +39,7 @@ public class ErrorMsg {
 		ERRORMAP.put("2D","防脱逃删除成功");
 		ERRORMAP.put("2E","防脱逃越界");
 		ERRORMAP.put("2F","防脱逃可控");
-		ERRORMAP.put("30","设备充电到4V（用于脚铐充到4V时通过串口反馈给充电宝）");
+		ERRORMAP.put("30","设备充电到4V");
 		ERRORMAP.put("31","主锁未关好");
 		ERRORMAP.put("32","任何电击强行停止");
 		ERRORMAP.put("33","定位失败");

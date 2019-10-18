@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.websocket.*;
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 
+import static com.along.gps.util.GpsServer.send;
 import static com.along.gps.util.SaveData.read;
 
 
@@ -34,7 +36,7 @@ import static com.along.gps.util.SaveData.read;
  * @Deacription: 打war包WebConfig 中ServerEndpointExporter得注释掉
  */
 @ServerEndpoint(value ="/WebSocket/{taskId}" ,encoders = {ServerEncoder.class})
-@Controller
+@RestController
 @Scope("prototype")
 public class WebSocketController   {
     // 解决WebSocket中Service层不能注入的问题
@@ -51,11 +53,11 @@ public class WebSocketController   {
     // 用来记录当前连接数的变量
     private static volatile int onlineCount = 0;
     //记录请求用户角色
-    private Map<String, String> usermap = new ConcurrentHashMap<>();
+    private static Map<String, String> usermap = new ConcurrentHashMap<>();
     // concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象
     private static CopyOnWriteArraySet<WebSocketController> webSocketSet = new CopyOnWriteArraySet<WebSocketController>();
     //记录请求用户角色
-    private Map<String, Session> sessionmap = new ConcurrentHashMap<>();
+    private static Map<String, Session> sessionmap = new ConcurrentHashMap<>();
     // 与某个客户端的连接会话，需要通过它来与客户端进行数据收发
     private static Session session;
     private static String taskId;
@@ -95,7 +97,7 @@ public class WebSocketController   {
     public void onMessage(String message, Session session) {
        // sendMessage();
        // sendMessage(this.taskId);
-        //send(taskId,message);
+        send(message);
     }
 
     @OnError
@@ -122,11 +124,11 @@ public class WebSocketController   {
     public static void sendMessageDemo(Session session)  {
                         read(session);
     }
-    public static void sendMessage2(GpsDescData gdd)  {
-        Set<Session> sessionSet= SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId()+"");
-        if (sessionSet!=null) {
+    public static void sendMessage2(GpsDescData gdd) {
+        Set<Session> sessionSet = SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId() + "");
+        if (sessionSet != null) {
             for (Session session : sessionSet) {
-                System.out.println(sessionSet.size()+"send:"+session.getId()+"##"+session.isOpen());
+                System.out.println(sessionSet.size() + "send:" + session.getId() + "##" + session.isOpen());
                 if (session != null && session.isOpen() && taskId.equals(gdd.getOutboundRoadlog().getTaskId() + "")) {
 
                     try {
@@ -134,7 +136,7 @@ public class WebSocketController   {
                         data.put("data", gdd);
                         synchronized (session) {
                             session.getBasicRemote().sendObject(data);
-                           // System.out.println("已发送数据" + JSON.toJSONString(data));
+                            // System.out.println("已发送数据" + JSON.toJSONString(data));
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -145,6 +147,26 @@ public class WebSocketController   {
             }
         }
     }
+        public static void sendOrderDemo(String order)  {
+            Set<Session> sessionSet= SystemUtil.sessionmap.get("-1");
+            if (sessionSet!=null) {
+                for (Session session : sessionSet) {
+                    if (session != null && session.isOpen()) {
+                        try {
+                            synchronized (session) {
+                                session.getBasicRemote().sendText("服务器： " + order);
+                                // System.out.println("已发送数据" + JSON.toJSONString(data));
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+    }
+
+
+
     //群发
    /* public static void sendMessage2(GpsDescData gdd)  {
        Session session= SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId()+"");
