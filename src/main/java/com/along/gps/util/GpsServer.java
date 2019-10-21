@@ -21,6 +21,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -234,7 +235,6 @@ public class GpsServer {
 
 											if (gpsDescData != null) {
 												//发送gps数据
-												gpsDescData.getOutboundRoadlog().setLatitude(gpsDescData.getOutboundRoadlog().getLatitude().add(BigDecimal.valueOf(Math.random())));
 												WebSocketController.sendMessage2(gpsDescData);
 												ContextMap.get(ctx).setTaskId(gpsDescData.getOutboundRoadlog().getTaskId());
 												if (ContextMap.get(ctx)==null){//保存电话号码 通过电话号码判断定位信息发送到哪个任务
@@ -345,7 +345,7 @@ public class GpsServer {
 									Equip equip=new Equip();
 									equip.setStatus(0);
 									ContextMap.put(ctx,equip);
-
+									selEquipStatus(ctx,"00");
 								}
 
 								/**
@@ -493,5 +493,29 @@ public class GpsServer {
 		//开启布防，设置时间
 		//查询设备状态
 		 InitialSetup(cxt,equipId);
+	}
+
+	public static List<String> readTxt1() throws IOException {
+		List<String> list=new ArrayList<>();
+		int i=0;
+		long start = System.currentTimeMillis();
+		File file = new File("E:\\gpsData\\548-json.txt");
+		Reader in = new FileReader(file);
+		BufferedReader br = new BufferedReader(in);
+		System.out.println("start.....");
+		while(br.ready()) {
+			//System.out.println(br.readLine());
+			//br.readLine();
+			//JSONObject jsonObject = JSONObject.parseObject(br.readLine());
+			list.add(br.readLine());
+			i++;
+		}
+		file=null;
+		in.close();
+		br.close();
+		long end = System.currentTimeMillis();
+		System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间毫秒="+(end-start));
+		list=null;
+		return list;
 	}
 }

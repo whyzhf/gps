@@ -18,12 +18,12 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.along.gps.util.GpsServer.ContextMap;
-import static com.along.gps.util.GpsServer.getcardByNum;
+import static com.along.gps.util.GpsServer.*;
 import static com.along.gps.util.Order.EquipOrder.sendOrder;
 import static com.along.gps.util.SystemUtil.ORDERMAP;
 
@@ -118,5 +118,15 @@ public class LoginController {
         return  resmap;
     }
 
+    @RequestMapping(value = "demo")
+    public List<String> demo(HttpServletRequest request) {
+        System.out.println("weeee");
+        try {
+            return readTxt1();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
+    }
 }

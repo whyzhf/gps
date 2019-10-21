@@ -18,14 +18,12 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 
+import static com.along.gps.util.GpsServer.readTxt1;
 import static com.along.gps.util.GpsServer.send;
 import static com.along.gps.util.SaveData.read;
 
@@ -56,14 +54,17 @@ public class WebSocketController   {
     private static Map<String, String> usermap = new ConcurrentHashMap<>();
     // concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象
     private static CopyOnWriteArraySet<WebSocketController> webSocketSet = new CopyOnWriteArraySet<WebSocketController>();
+    private static CopyOnWriteArraySet< Map<String, Set<Session>>> webSocketMap = new CopyOnWriteArraySet< Map<String, Set<Session>> >();
+
     //记录请求用户角色
     private static Map<String, Session> sessionmap = new ConcurrentHashMap<>();
     // 与某个客户端的连接会话，需要通过它来与客户端进行数据收发
     private static Session session;
-    private static String taskId;
+    private  static String taskId;
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
     @OnOpen
-    public void onOpen(Session session, @PathParam("taskId") String taskId) throws Exception {
+    public void onOpen(Session session, @PathParam("taskId") String taskId) {
+
         System.out.println("open:"+session.getId());
         this.session = session;
         this.taskId=taskId;
@@ -79,12 +80,15 @@ public class WebSocketController   {
         webSocketSet.add(this);
        // sendMessage(this.taskId);
        // ClearGpsData();
+
+        System.out.println("11111111"+taskId);
         if(taskId.equals("549")) {
             sendMessageDemo(session);
         }
+
     }
 
-    @OnClose
+   /* @OnClose
     public void onClose() {
         webSocketSet.remove(this);
         usermap.remove(this.session.getId());
@@ -92,7 +96,7 @@ public class WebSocketController   {
       //  SystemUtil.sessionmap.clear();
         SystemUtil.sessionmap.get( this.taskId).remove(this.session);
     }
-
+*/
     @OnMessage
     public void onMessage(String message, Session session) {
        // sendMessage();
@@ -126,11 +130,12 @@ public class WebSocketController   {
     }
     public static void sendMessage2(GpsDescData gdd) {
         Set<Session> sessionSet = SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId() + "");
-        if (sessionSet != null) {
-            for (Session session : sessionSet) {
+        if (sessionSet!=null) {
+            Iterator<Session> it = sessionSet.iterator();
+            while (it.hasNext()) {
+                Session session = it.next();
                 System.out.println(sessionSet.size() + "send:" + session.getId() + "##" + session.isOpen());
                 if (session != null && session.isOpen() && taskId.equals(gdd.getOutboundRoadlog().getTaskId() + "")) {
-
                     try {
                         Map<String, GpsDescData> data = new HashMap<>();
                         data.put("data", gdd);
@@ -143,6 +148,8 @@ public class WebSocketController   {
                     } catch (EncodeException e) {
                         e.printStackTrace();
                     }
+                }else if(session != null && !session.isOpen()){
+                    sessionSet.remove(session);
                 }
             }
         }
