@@ -19,7 +19,7 @@ import static com.along.gps.util.MyThread.getAllFileName;
  * */
 public class FileUtil {
 	public static void main(String[] args) throws Exception {
-		System.out.println(getDataList("548").size());
+		System.out.println("548".split("-")[0]);
 	}
 
 	//获取单个文件里的值

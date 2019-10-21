@@ -81,7 +81,7 @@ public class WebSocketController   {
        // sendMessage(this.taskId);
        // ClearGpsData();
 
-        System.out.println("11111111"+taskId);
+      //演示号
         if(taskId.equals("549")) {
             sendMessageDemo(session);
         }
@@ -134,7 +134,7 @@ public class WebSocketController   {
             Iterator<Session> it = sessionSet.iterator();
             while (it.hasNext()) {
                 Session session = it.next();
-                System.out.println(sessionSet.size() + "send:" + session.getId() + "##" + session.isOpen());
+               // System.out.println(sessionSet.size() + "send:" + session.getId() + "##" + session.isOpen());
                 if (session != null && session.isOpen() && taskId.equals(gdd.getOutboundRoadlog().getTaskId() + "")) {
                     try {
                         Map<String, GpsDescData> data = new HashMap<>();

@@ -44,13 +44,7 @@ public class LoginController {
     @Resource
     private GpsService carService;
 
-    @RequestMapping(value = "login")
-    public String login(HttpServletRequest request) {
-        String agent = request.getHeader("user-agent");
-        HttpSession session = request.getSession();
-            return "login";
 
-    }
 
     @RequestMapping(value = "sendOrder")
     public  Map<String,Object> login(HttpServletRequest request, @RequestBody Map<String,String> pubParam) {
