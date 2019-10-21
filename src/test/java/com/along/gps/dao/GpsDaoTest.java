@@ -26,20 +26,9 @@ public class GpsDaoTest {
 
 	@Test
 	public void main() {
-		saveGpsData();
-		System.out.println("--------------------");
-		saveGpsData();
+		gpsDao.getEquipByTaskId(548);
 	}
 
-	public void saveGpsData() {
-		long startTime = System.currentTimeMillis();
-		System.out.println(gpsDao.getOutboundRoadlog().size());
-		int i=gpsDao.getOutboundRoadlog().size();
-		long endTime = System.currentTimeMillis();
-		System.out.println("读取"+i+"条数据，运行时间:" + (endTime - startTime) + "ms");
-		//System.out.println(gpsDao.getPrisoner("009"));
-
-	}
 
 
 	@Cacheable(value = "1")

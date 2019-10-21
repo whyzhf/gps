@@ -3,29 +3,20 @@ package com.along.gps.util;
 
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.along.gps.controller.WebSocketController;
-import com.along.gps.dao.GpsDao;
+
 import com.along.gps.entity.GPS;
 import com.along.gps.entity.GpsDescData;
 import com.along.gps.entity.OutboundRoadlog;
 import com.along.gps.service.GpsService;
-import com.along.gps.service.impl.GpsServiceImpl;
 import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import java.io.*;
 import java.math.BigDecimal;
-import java.net.InetSocketAddress;
-import java.nio.channels.SocketChannel;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -217,7 +208,6 @@ public class SaveData  {
 
 		sb.append(time + " # ");
 		sb.append(address + " # ");
-
 		// sb.append();
 		Writer w = null;
 		BufferedWriter bw = null;
@@ -226,9 +216,7 @@ public class SaveData  {
 		try {
 			String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-json.txt";
 			String FileName1 = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-hex.txt";
-
 			File dir = new File(SysUtil.WEB_LOG_LOCATION);
-
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
@@ -310,11 +298,10 @@ public class SaveData  {
 	 *
 	 * @param msg
 	 */
-	public synchronized static void saveDataToLog( GpsDescData msg) {
+	public synchronized  void saveDataToLog( GpsDescData msg) {
+		System.out.println("11111s");
 		Writer w = null;
 		BufferedWriter bw = null;
-		Writer w1 = null;
-		BufferedWriter bw1 = null;
 		try {
 			String FileName = msg.getOutboundRoadlog().getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
 			File dir = new File(SysUtil.WEB_DATA_LOCATION);
@@ -324,14 +311,12 @@ public class SaveData  {
 			}
 			// 写入文本
 			File f = new File(dir + "/" + FileName);
-
 			if (!f.exists()) {
 				f.createNewFile();
 			}
 			w = new FileWriter(f, true);
 			bw = new BufferedWriter(w);
 			bw.write(JSON.toJSONString(msg)+ "\r\n");
-
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -339,14 +324,11 @@ public class SaveData  {
 			try {
 				bw.close();
 				w.close();
-
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 		}
-
 	}
 /****************************************************************/
 	public  synchronized static void saveLog( String msg) {

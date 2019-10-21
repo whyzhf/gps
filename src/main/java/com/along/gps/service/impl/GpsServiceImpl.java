@@ -1,13 +1,20 @@
 package com.along.gps.service.impl;
 
+import com.along.gps.config.CacheExpire;
 import com.along.gps.dao.GpsDao;
 import com.along.gps.entity.OutboundRoadlog;
 import com.along.gps.entity.TaskEquip;
 import com.along.gps.service.GpsService;
+import com.along.gps.util.FileUtil;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.List;
+
+import static com.along.gps.util.FileUtil.*;
+
 @Service
 public class GpsServiceImpl implements GpsService {
 	@Resource
@@ -42,5 +49,16 @@ public class GpsServiceImpl implements GpsService {
 	public Integer getEquipId(String id) {
 
 		return gpsDao.getEquipId(id);
+	}
+
+
+	public List<String>  getfile(){
+		try {
+
+			return getData("");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

@@ -7,6 +7,7 @@ package com.along.gps.controller;
 
 
 import com.along.gps.service.GpsService;
+import com.along.gps.util.FileUtil;
 import com.along.gps.util.GpsServer;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -119,13 +120,15 @@ public class LoginController {
     }
 
     @RequestMapping(value = "demo")
-    public List<String> demo(HttpServletRequest request) {
+    public Map<String,Object> demo(HttpServletRequest request) {
         System.out.println("weeee");
+        Map<String,Object> map=new HashMap<>();
         try {
-            return readTxt1();
-        } catch (IOException e) {
+            map.put("data",carService.getfile());
+            return map;
+        } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return map;
         }
 
     }

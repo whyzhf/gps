@@ -34,6 +34,24 @@ spring:
   resources:
     add-mappings: false
 
+  #在RedisConfig 配置文件设置过期时间等信息
+  redis:
+    #host: 120.77.252.208 #Redis的主机名
+    host: 127.0.0.1 #Redis的主机名
+    database: 0    # 使用的数据库（0-15），默认为0
+   # password: 123456     #redis服务器密码 ,无密码时注销这一行
+    port: 6379     #redis的端口号
+    ssl: false
+    timeout: 20000ms  #Redis连接超时(毫秒）
+    jedis:
+      pool:
+        max-active: 80  #连接池最大连接数（使用负值表示没有限制）
+        max-idle: 50    # 连接池中的最大空闲连接
+        max-wait: 200ms # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        min-idle: 0     # 连接池中的最小空闲连接
+  cache:
+    type: redis
+
 logging:
   level:
     com.along.gps.dao: debug

@@ -23,7 +23,7 @@ public class ServerEncoder implements Encoder.Text<Map<String,Object>> {
 
 	@Override
 	public String encode(Map<String, Object> map)  {
-		System.out.println("JSON.toJSONString(map):"+JSON.toJSONString(map));
+	//	System.out.println("JSON.toJSONString(map):"+JSON.toJSONString(map));
 		return JSON.toJSONString(map);
 	}
 }

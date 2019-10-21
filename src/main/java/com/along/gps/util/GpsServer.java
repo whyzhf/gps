@@ -229,7 +229,7 @@ public class GpsServer {
 											new Thread(() -> {//存储gps日志
 												saveMsgToLog(ctx, hexStr);
 												if (gpsDescData != null) {//存储gps数据
-													saveDataToLog(gpsDescData);
+													new SaveData().saveDataToLog(gpsDescData);
 												}
 											}).start();
 
@@ -305,9 +305,6 @@ public class GpsServer {
 													ContextMap.get(ctx).setErrorStatus(error.toString());
 												}
 												ContextMap.get(ctx).setUptime(Calendar.getInstance());
-
-
-
 											}
 											if (ContextMap.get(ctx)==null){//保存设备编号
 												Equip equip=new Equip();
@@ -510,7 +507,7 @@ public class GpsServer {
 			list.add(br.readLine());
 			i++;
 		}
-		file=null;
+
 		in.close();
 		br.close();
 		long end = System.currentTimeMillis();
