@@ -378,7 +378,7 @@ public class SaveData  {
 		BufferedReader reader = null;
 
 		try {
-			File file = new File(SysUtil.WEB_DATA_LOCATION+"/548-2019-10-12-14-json.txt");
+			File file = new File(SysUtil.WEB_DATA_LOCATION+"/549-json.txt");
 			fis = new BufferedInputStream(new FileInputStream(file));
 			reader = new BufferedReader(new InputStreamReader(fis,"utf-8"),5*1024*1024);// 用5M的缓冲读取文本文件
 

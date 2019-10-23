@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static com.along.gps.util.FileUtil.*;
 
@@ -51,14 +52,16 @@ public class GpsServiceImpl implements GpsService {
 		return gpsDao.getEquipId(id);
 	}
 
-
-	public List<String>  getfile(){
+	@Override
+	public Map<String,List<String>> getfile(String taskId) {
 		try {
-
-			return getData("");
+			System.out.println("1111111");
+			return getData(taskId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
+
+
 }

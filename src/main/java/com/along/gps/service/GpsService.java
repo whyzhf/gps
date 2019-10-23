@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 
 public interface GpsService {
@@ -24,7 +25,7 @@ public interface GpsService {
 	Integer getTaskByEquipId(String card);
 	Integer getEquipId( String id);
 
-	@Cacheable(value = "getfile",unless="#result == null")
-	@CacheExpire(expire = 60*5)
-	List<String>  getfile();
+/*	@Cacheable(value = "getfile",key="#p0",unless="#result == null",condition = "#result != null && #result.size()<100000")
+	@CacheExpire(expire = 60*5)*/
+	Map<String,List<String>> getfile(String taskId);
 }

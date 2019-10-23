@@ -144,6 +144,7 @@ public class TedisCacheManager extends RedisCacheManager implements ApplicationC
 				continue;
 			}
 			long expire = cacheExpire.expire();
+			System.out.println(cacheName);
 			log.info("cacheName: {}, expire: {}", cacheName, expire);
 			if (expire >= 0) {
 				// 缓存配置

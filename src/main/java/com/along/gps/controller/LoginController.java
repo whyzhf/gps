@@ -113,12 +113,13 @@ public class LoginController {
         return  resmap;
     }
 
-    @RequestMapping(value = "demo")
-    public Map<String,Object> demo(HttpServletRequest request) {
-        System.out.println("weeee");
+    @RequestMapping(value = "gethisData")
+    public Map<String,Object> demo(HttpServletRequest request,@RequestBody Map<String,String> pubParam) {
+      //  System.out.println("weeee");
+        String taskId=pubParam.get("taskId");
         Map<String,Object> map=new HashMap<>();
         try {
-            map.put("data",carService.getfile());
+            map.put("data",carService.getfile(taskId));
             return map;
         } catch (Exception e) {
             e.printStackTrace();

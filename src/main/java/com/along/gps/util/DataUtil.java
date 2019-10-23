@@ -1,5 +1,6 @@
 package com.along.gps.util;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -7,6 +8,13 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DataUtil {
+	public static void main(String[] args) {
+		try {
+			new FileUtil().readFileReturnMap("E:\\gpsData\\demo.txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	/**
 	 * 获取当前时间
 	 * */
