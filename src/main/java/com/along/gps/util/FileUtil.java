@@ -2,6 +2,7 @@ package com.along.gps.util;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.along.gps.entity.HistData;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -22,9 +23,9 @@ public class FileUtil {
 
 
 	//获取单个文件里的值
-	public static Map<String,List<String>> getData(String taskId){
+	public static 	List<HistData> getData(String taskId){
+		//String path =SysUtil.LOCAL_DATA_LOCATION;
 		String path =SysUtil.WEB_DATA_LOCATION;
-		//String path =SysUtil.WEB_DATA_LOCATION;
 		String fileName=FindFile(taskId);
 		String url=path+"/"+fileName;
 		try {
@@ -39,21 +40,21 @@ public class FileUtil {
 	public static List<String> getDataList(String taskId) throws Exception {
 		String path =SysUtil.WEB_DATA_LOCATION;
 		//String path =SysUtil.WEB_DATA_LOCATION;
-		List<String> fileNames=FindFiles("548",path);
+		List<String> fileNames=FindFiles(taskId,path);
 		return asyncGet(fileNames);
 	}
 
 
 
 	//读取文件
-	public static Map<String,List<String>>  readFileReturnMap(String path) throws IOException {
-		Map<String,List<String>> map=new HashMap<>();
-		List<String> list=null;
+	public static	List<HistData>  readFileReturnMap(String path) throws IOException {
+		Map<String,List<JSONObject>> map=new HashMap<>();
+		List<JSONObject> list=null;
 		int i=0;
 		long start = System.currentTimeMillis();
 		File file = new File(path );
 		String equip="";
-		System.out.println("start.....");
+	//	System.out.println("start.....");
 		FileInputStream fis = new FileInputStream(file);
 		UnicodeReader unicodeReader = new UnicodeReader(fis, Charset.defaultCharset().name());
 		BufferedReader br = new BufferedReader(unicodeReader);
@@ -65,23 +66,29 @@ public class FileUtil {
 			equip=jsonObject.get("equip")+"";
 
 			if(map.get(equip)!=null){
-				map.get(equip).add(jsonObject.toString());
+				map.get(equip).add(jsonObject);
 			}else{
+
 				list=new ArrayList<>();
-				list.add(jsonObject.toString());
+				list.add(jsonObject);
 				map.put(jsonObject.get("equip")+"",list);
 			}
 			i++;
 			//res.add(jsonObject.toString());
 		}
+		List<HistData> resList=new ArrayList<>();
+
+		map.forEach((K,V)->{
+			resList.add(new HistData(K,V));
+		});
 
 		unicodeReader.close();
 		fis.close();
 		br.close();
-		long end = System.currentTimeMillis();
-		System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
+		//long end = System.currentTimeMillis();
+		//System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
 
-		return map;
+		return resList;
 	}
 
 
@@ -143,8 +150,8 @@ public class FileUtil {
 	public static String FindFile(String taskId){
 		// 设置日期转换格式
 		SimpleDateFormat smp = new SimpleDateFormat("yyMMddHHmmss");
-		//String path =SysUtil.WEB_DATA_LOCATION;
 		String path =SysUtil.WEB_DATA_LOCATION;
+		//String path =SysUtil.LOCAL_DATA_LOCATION;
 		File file = new File(path);
 		// 定义文件修改时间
 		long modify_time = 0;

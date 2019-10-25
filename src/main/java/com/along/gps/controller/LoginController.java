@@ -55,6 +55,7 @@ public class LoginController {
         String card=pubParam.get("card");
         String[] cardArr= card.split(",");
         String userId=pubParam.get("userId");
+        userId = (1000000+Integer.parseInt(userId))+"";
         for (int i = 0; i < cardArr.length; i++) {
             if (cardArr[i].length()>8){
                 card = getcardByNum(ContextMap, cardArr[i]);
@@ -62,7 +63,6 @@ public class LoginController {
                 card =cardArr[i];
             }
             if ("".equals(card)) {
-
                 map.put(cardArr[i],"该设备未连接");
                 resmap.put("data",map);
             }else {
@@ -78,16 +78,16 @@ public class LoginController {
                     }else{
                         card =cardArr[i];
                     }
-                    if(null==ORDERMAP.get(card+userId+"0115")){
+                    if(null==ORDERMAP.get(card+userId+"0120")){
                         map.put(cardArr[i],"该设备未连接");
                         resmap.put("data",map);
                         if(map.size()==cardArr.length){
                             return resmap;
                         }
-                    }else if(!"0".equals(ORDERMAP.get(card+userId+"0115"))){
-                        map.put(cardArr[i],ORDERMAP.get(card+userId+"0115"));
+                    }else if(!"0".equals(ORDERMAP.get(card+userId+"0120"))){
+                        map.put(cardArr[i],ORDERMAP.get(card+userId+"0120"));
                         resmap.put("data",map);
-                        ORDERMAP.remove(card+userId+"0115");
+                        ORDERMAP.remove(card+userId+"0120");
                         if(map.size()==cardArr.length){
                             return resmap;
                         }
@@ -99,28 +99,42 @@ public class LoginController {
                 e.printStackTrace();
             }
         }
+     /*   ORDERMAP.forEach((K,V)->{
+            System.out.println("11........"+K+"   #    "+V);
+        });*/
         for (int i = 0; i < cardArr.length; i++) {
-            if("0".equals(ORDERMAP.get(cardArr[i]+userId+"0115"))){
+            if (cardArr[i].length()>8){
+                card = getcardByNum(ContextMap, cardArr[i]);
+            }else{
+                card =cardArr[i];
+            }
+            System.out.println(card + userId + "0120");
+            if("0".equals(ORDERMAP.get(card+userId+"0120"))){
                 map.put(cardArr[i],"等待超时");
                 resmap.put("data",map);
-                ORDERMAP.remove(cardArr[i]+userId+"0115");
+                ORDERMAP.remove(card+userId+"0120");
                 if(map.size()==cardArr.length){
                     return resmap;
                 }
             }
         }
-
+       /* ORDERMAP.forEach((K,V)->{
+            System.out.println(K+"   #    "+V);
+        });*/
         return  resmap;
     }
-
+    private static   Map<String,Object> resmap=new HashMap<>();
     @RequestMapping(value = "gethisData")
     public Map<String,Object> demo(HttpServletRequest request,@RequestBody Map<String,String> pubParam) {
       //  System.out.println("weeee");
         String taskId=pubParam.get("taskId");
         Map<String,Object> map=new HashMap<>();
+        if (resmap.get(taskId)!=null){
+            return resmap;
+        }
         try {
-            map.put("data",carService.getfile(taskId));
-            return map;
+            resmap.put("data",carService.getfile(taskId));
+            return resmap;
         } catch (Exception e) {
             e.printStackTrace();
             return map;

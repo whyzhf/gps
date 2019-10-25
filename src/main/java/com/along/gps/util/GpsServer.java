@@ -30,6 +30,7 @@ import static com.along.gps.util.Order.EquipOrder.*;
 import static com.along.gps.util.Order.ErrorMsg.ERRORMAP;
 import static com.along.gps.util.Order.HexadecimalUtil.*;
 import static com.along.gps.util.Order.HexadecimalUtil.get10HexNum;
+import static com.along.gps.util.Order.OrderUtil.retuenPowerOrder;
 import static com.along.gps.util.Order.OrderUtil.sendStatus;
 import static com.along.gps.util.SaveData.*;
 import static com.along.gps.util.SystemUtil.ORDERMAP;
@@ -258,8 +259,8 @@ public class GpsServer {
 											String num=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
 											String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
 											//读取命令反馈
-											ORDERMAP.put(num+user+get10HexNum(str[10])+get10HexNum(str[11]),"FF".equals(str[12])?"成功":"失败");
-											if("12".equals(str[10])){
+											ORDERMAP.put(num+user+get10HexNum(str[10])+get10HexNum(str[11]),retuenPowerOrder(str[12]));
+											if("12".equals(str[10])){//解析状态
 												ContextMap.get(ctx).setPower(get10HexNum(str[11])+"%");
 												char[] sta=hex10Byte(Integer.parseInt(str[12],16));
 												StringBuffer error=new StringBuffer();
@@ -448,7 +449,7 @@ public class GpsServer {
 			ctx.writeAndFlush(byteBuf);
 			//保存设备命令日志
 			saveOrderToLog(ctx, orderStr);
-			ORDERMAP.put(card+userId+"0115","0");
+			ORDERMAP.put(card+userId+"0120","0");
 		}
 	}
 	//通过手机号找通道

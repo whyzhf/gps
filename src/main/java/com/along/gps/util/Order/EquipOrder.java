@@ -35,7 +35,7 @@ public class EquipOrder {
 
 	//send 发送电击命令
 	public static String sendOrder(String equipId,String UserID){
-		UserID = (1000000+Integer.parseInt(UserID))+"";
+	//	UserID = (1000000+Integer.parseInt(UserID))+"";
 		return send(equipId,UserID,15);
 	}
 

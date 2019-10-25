@@ -1,7 +1,9 @@
 package com.along.gps.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.along.gps.config.CacheExpire;
 import com.along.gps.dao.GpsDao;
+import com.along.gps.entity.HistData;
 import com.along.gps.entity.OutboundRoadlog;
 import com.along.gps.entity.TaskEquip;
 import com.along.gps.service.GpsService;
@@ -53,9 +55,9 @@ public class GpsServiceImpl implements GpsService {
 	}
 
 	@Override
-	public Map<String,List<String>> getfile(String taskId) {
+	public 	List<HistData> getfile(String taskId) {
 		try {
-			System.out.println("1111111");
+		//	System.out.println("1111111");
 			return getData(taskId);
 		} catch (Exception e) {
 			e.printStackTrace();

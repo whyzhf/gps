@@ -1,6 +1,8 @@
 package com.along.gps.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.along.gps.config.CacheExpire;
+import com.along.gps.entity.HistData;
 import com.along.gps.entity.OutboundRoadlog;
 import com.along.gps.entity.TaskEquip;
 import org.apache.ibatis.annotations.Param;
@@ -27,5 +29,5 @@ public interface GpsService {
 
 /*	@Cacheable(value = "getfile",key="#p0",unless="#result == null",condition = "#result != null && #result.size()<100000")
 	@CacheExpire(expire = 60*5)*/
-	Map<String,List<String>> getfile(String taskId);
+	List<HistData> getfile(String taskId);
 }

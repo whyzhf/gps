@@ -18,7 +18,13 @@ public class GPSConverterUtils {
     public static double pi = 3.1415926535897932384626;
     public static double a = 6378245.0;
     public static double ee = 0.00669342162296594323;
-
+   /* lat	39.90931
+lng	116.397274
+P	39.90931044504171
+R	116.39727433070539*/
+    public static void main(String[] args) {
+        gps84_To_Gcj02(39.90931,116.397274);
+    }
     /**
      * 84 to 火星坐标系 (GCJ-02) World Geodetic System ==> Mars Geodetic System
      * @param lat
@@ -38,6 +44,7 @@ public class GPSConverterUtils {
         dLon = (dLon * 180.0) / (a / sqrtMagic * Math.cos(radLat) * pi);
         double mgLat = lat + dLat;
         double mgLon = lon + dLon;
+      //  System.out.println(mgLat+","+mgLon);
         return new GPS(mgLat, mgLon);
     }
 

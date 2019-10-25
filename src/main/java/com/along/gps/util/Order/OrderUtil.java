@@ -188,6 +188,17 @@ public class OrderUtil {
 		}
 		return "-1";
 	}
+	public static  String retuenPowerOrder(String order){
+		//命令解析
+		if ("00".equals(order)){
+			return "执行失败";//执行失败
+		}else if ("01".equals(order)){
+			return "设备未布防";//设备未布防
+		}else if ("FF".equals(order)){
+			return "执行成功";//执行成功
+		}
+		return "执行失败";//执行成功
+	}
 
 	/**
 	 * 群组命令
