@@ -25,4 +25,6 @@ public class SystemUtil {
     public void clearMap(){
         ORDERMAP = new ConcurrentHashMap<>();
     }
+
+    public static int FLAG=0;
 }

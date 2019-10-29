@@ -128,7 +128,7 @@ public class WebSocketController   {
     public static void sendMessageDemo(Session session)  {
                         read(session);
     }
-    public static void sendMessage2(GpsDescData gdd) {
+    public static synchronized void sendMessage2(GpsDescData gdd) {
         Set<Session> sessionSet = SystemUtil.sessionmap.get(gdd.getOutboundRoadlog().getTaskId() + "");
         if (sessionSet!=null) {
             Iterator<Session> it = sessionSet.iterator();
@@ -149,7 +149,9 @@ public class WebSocketController   {
                         e.printStackTrace();
                     }
                 }else if(session != null && !session.isOpen()){
-                    sessionSet.remove(session);
+                    //sessionSet.remove(session);
+                    //防止ConcurrentModificationException异常
+                    it.remove();
                 }
             }
         }

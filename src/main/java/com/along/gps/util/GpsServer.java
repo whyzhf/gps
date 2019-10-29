@@ -1,5 +1,6 @@
 package com.along.gps.util;
 
+import com.alibaba.fastjson.JSONObject;
 import com.along.gps.controller.WebSocketController;
 import com.along.gps.entity.Equip;
 import com.along.gps.entity.GpsDescData;
@@ -206,15 +207,17 @@ public class GpsServer {
 										}
 										// 转义
 										String hexStr = ConvertData.replaceData(sb.toString().trim());
-
+										//测试命令收发
 										System.out.println(hexStr);
 										sendOrderDemo(hexStr);
+
 										//WebSocketController.sendMessageDemo2("接收到的消息："+ hexStr);
+										//保存连接通道
 										if( ContextMap.get(ctx).getCard()==null){
 											selEquipStatus(ctx,"00");
 										}
-
-										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){//发送更新设备状态
+										//发送更新设备状态，30分钟更新一次（非设备异常情况下）
+										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){
 											selEquipStatus(ctx,ContextMap.get(ctx).getCard());
 										}
 
@@ -245,7 +248,7 @@ public class GpsServer {
 												}else {
 													if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {
 													}else{
-														Equip equip=new Equip();
+														//Equip equip=new Equip();
 														ContextMap.get(ctx).setNum(gpsDescData.getEquip());
 													}
 												}
@@ -259,7 +262,8 @@ public class GpsServer {
 											String num=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
 											String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
 											//读取命令反馈
-											ORDERMAP.put(num+user+get10HexNum(str[10])+get10HexNum(str[11]),retuenPowerOrder(str[12]));
+											System.out.println(num+user+str[10]+str[11]+"::"+retuenPowerOrder(str[12]));
+											ORDERMAP.put(num+user+str[10]+str[11],retuenPowerOrder(str[12]));
 											if("12".equals(str[10])){//解析状态
 												ContextMap.get(ctx).setPower(get10HexNum(str[11])+"%");
 												char[] sta=hex10Byte(Integer.parseInt(str[12],16));
@@ -385,7 +389,7 @@ public class GpsServer {
 
 			// 绑定端口，并开启异步阻塞
 			ChannelFuture f = b.bind(port).sync();
-			System.out.println(f.toString());
+		//	System.out.println(f.toString());
 			System.out.println("服务器启动，开始监听：" + f.channel().localAddress());
 
 			//listen();
@@ -411,7 +415,6 @@ public class GpsServer {
 			// 去掉前后空格
 			saveData(ctx, hexData);
 
-
 		}
 	}
 
@@ -426,7 +429,7 @@ public class GpsServer {
 		//拆分字符串
 		String[]str = Order.split("(?<=\\G.{2})");
 		String card=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
-		System.out.println(card);
+		//System.out.println(card);
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
 		byte[]order=hexStringToByteArray(Order);
 		if(ctx!=null) {
@@ -439,7 +442,7 @@ public class GpsServer {
 	public static void sendPower(String card,String userId) {
 		System.out.println("开始电击...");
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
-		System.out.println(card);
+		//System.out.println(card);
 		String orderStr=sendOrder(card,userId);
 		byte[]order=hexStringToByteArray(orderStr);
 		if(ctx!=null) {

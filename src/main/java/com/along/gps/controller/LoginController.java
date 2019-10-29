@@ -6,9 +6,12 @@ package com.along.gps.controller;
  */
 
 
+import com.along.gps.entity.EquipS;
+import com.along.gps.entity.GpsDescData;
 import com.along.gps.service.GpsService;
 import com.along.gps.util.FileUtil;
 import com.along.gps.util.GpsServer;
+import com.along.gps.util.SystemUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,10 +23,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.along.gps.controller.WebSocketController.sendMessage2;
 import static com.along.gps.util.GpsServer.*;
 import static com.along.gps.util.Order.EquipOrder.sendOrder;
 import static com.along.gps.util.SystemUtil.ORDERMAP;
@@ -45,10 +50,16 @@ public class LoginController {
     private GpsService carService;
 
 
-
+    /**
+     * 电击
+     * @param request
+     * @param pubParam
+     * @return
+     */
     @RequestMapping(value = "sendOrder")
     public  Map<String,Object> login(HttpServletRequest request, @RequestBody Map<String,String> pubParam) {
         Map<String,Object> resmap=new HashMap<>();
+        List<EquipS> list=new ArrayList<>();
         Map<String,String> map=new HashMap<>();
         resmap.put("code","200");
         resmap.put("message","200");
@@ -64,7 +75,8 @@ public class LoginController {
             }
             if ("".equals(card)) {
                 map.put(cardArr[i],"该设备未连接");
-                resmap.put("data",map);
+                resmap.put("data",list);
+            //    resmap.put("data",map);
             }else {
                 GpsServer.sendPower(card, userId);
             }
@@ -80,15 +92,23 @@ public class LoginController {
                     }
                     if(null==ORDERMAP.get(card+userId+"0120")){
                         map.put(cardArr[i],"该设备未连接");
-                        resmap.put("data",map);
+                      //  resmap.put("data",map);
                         if(map.size()==cardArr.length){
+                            map.forEach((K,V)->{
+                                list.add(new EquipS(K,V));
+                            });
+                            resmap.put("data",list);
                             return resmap;
                         }
                     }else if(!"0".equals(ORDERMAP.get(card+userId+"0120"))){
                         map.put(cardArr[i],ORDERMAP.get(card+userId+"0120"));
-                        resmap.put("data",map);
+                     //   resmap.put("data",map);
                         ORDERMAP.remove(card+userId+"0120");
                         if(map.size()==cardArr.length){
+                            map.forEach((K,V)->{
+                                list.add(new EquipS(K,V));
+                            });
+                            resmap.put("data",list);
                             return resmap;
                         }
                     }
@@ -99,7 +119,7 @@ public class LoginController {
                 e.printStackTrace();
             }
         }
-     /*   ORDERMAP.forEach((K,V)->{
+      /* ORDERMAP.forEach((K,V)->{
             System.out.println("11........"+K+"   #    "+V);
         });*/
         for (int i = 0; i < cardArr.length; i++) {
@@ -108,37 +128,72 @@ public class LoginController {
             }else{
                 card =cardArr[i];
             }
-            System.out.println(card + userId + "0120");
+          //  System.out.println(card + userId + "0120");
             if("0".equals(ORDERMAP.get(card+userId+"0120"))){
                 map.put(cardArr[i],"等待超时");
-                resmap.put("data",map);
                 ORDERMAP.remove(card+userId+"0120");
                 if(map.size()==cardArr.length){
+                    map.forEach((K,V)->{
+                        list.add(new EquipS(K,V));
+                    });
+                    resmap.put("data",list);
                     return resmap;
                 }
             }
         }
-       /* ORDERMAP.forEach((K,V)->{
-            System.out.println(K+"   #    "+V);
-        });*/
+
+
         return  resmap;
     }
-    private static   Map<String,Object> resmap=new HashMap<>();
+
+
+   // private static   Map<String,Object> resmap=new HashMap<>();
+
+    /**
+     * 历史数据
+     * @param request
+     * @param pubParam
+     * @return
+     */
     @RequestMapping(value = "gethisData")
     public Map<String,Object> demo(HttpServletRequest request,@RequestBody Map<String,String> pubParam) {
       //  System.out.println("weeee");
         String taskId=pubParam.get("taskId");
         Map<String,Object> map=new HashMap<>();
-        if (resmap.get(taskId)!=null){
-            return resmap;
-        }
         try {
-            resmap.put("data",carService.getfile(taskId));
-            return resmap;
+           /* if (resmap.get(taskId)!=null){
+                return resmap;
+            }*/
+            map.put("data",carService.getfile(taskId));
+            return map;
         } catch (Exception e) {
             e.printStackTrace();
             return map;
         }
 
+    }
+
+    /**
+     * 模拟gps数据发送（测试用）
+     * @param request
+     * @param gdd
+     * @return
+     */
+    @RequestMapping(value = "sendgps")
+    public String sendgps(HttpServletRequest request,@RequestBody GpsDescData gdd) {
+        sendMessage2( gdd);
+        return "ok";
+    }
+
+
+    /**
+     *是否开启坐标转换（测试用）
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "changeFalg")
+    public String changeFalg(HttpServletRequest request,int flag) {
+        SystemUtil.FLAG=flag;
+        return SystemUtil.FLAG==0?"已开启坐标转换":"已关闭坐标转换";
     }
 }

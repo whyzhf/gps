@@ -77,16 +77,21 @@ public class SaveData  {
 	}
 	private static OutboundRoadlog toEntity(String data) {
 		String[] arr = data.split(";");
-		//GPS gps = GPSConverterUtils.gps84_To_Gcj02(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
+
 		OutboundRoadlog gd = new OutboundRoadlog();
 		gd.setUptime(arr[9]);
 		gd.setDirection(Short.parseShort(arr[8]));
 		gd.setLat(arr[1]);
 		gd.setLot(arr[2]);
-		//gd.setLatitude(new BigDecimal(gps.getLat()+""));
-		//gd.setLongitude(new BigDecimal(gps.getLon()+""));
-		gd.setLatitude(new BigDecimal(arr[4]));
-		gd.setLongitude(new BigDecimal(arr[5]));
+		//坐标转换
+		if (SystemUtil.FLAG==0) {
+			GPS gps = GPSConverterUtils.gps84_To_Gcj02(Double.parseDouble(arr[4]), Double.parseDouble(arr[5]));
+			gd.setLatitude(new BigDecimal(gps.getLat() + ""));
+			gd.setLongitude(new BigDecimal(gps.getLon() + ""));
+		}else {
+			gd.setLatitude(new BigDecimal(arr[4]));
+			gd.setLongitude(new BigDecimal(arr[5]));
+		}
 		gd.setSpeed(Short.parseShort(arr[7]));
 		gd.setEquipmentId(1);//id:需要编号做匹配
 		gd.setEquipmentCardId(arr[0]);
