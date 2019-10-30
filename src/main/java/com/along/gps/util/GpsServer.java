@@ -519,4 +519,22 @@ public class GpsServer {
 		list=null;
 		return list;
 	}
+
+	/***********************************************************/
+	public static void sendPower2(String card,String userId) {
+		System.out.println("开始电击...");
+		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
+		//System.out.println(card);
+		String orderStr=sendOrder(card,userId);
+		byte[]order=hexStringToByteArray(orderStr);
+		if(ctx!=null) {
+			//将命令转换成ByteBuf
+			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
+			//发送命令
+			ctx.writeAndFlush(byteBuf);
+			//保存设备命令日志
+			saveOrderToLog(ctx, orderStr);
+			ORDERMAP.put(card+userId+"0120","0");
+		}
+	}
 }

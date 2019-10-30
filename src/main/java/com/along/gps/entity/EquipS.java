@@ -1,8 +1,18 @@
 package com.along.gps.entity;
 
 public class EquipS {
+	private String prisoner;
 	private String card;
 	private String status;
+
+	@Override
+	public String toString() {
+		return "EquipS{" +
+				"prisoner='" + prisoner + '\'' +
+				", card='" + card + '\'' +
+				", status='" + status + '\'' +
+				'}';
+	}
 
 	public EquipS() {
 	}
@@ -12,12 +22,18 @@ public class EquipS {
 		this.status = status;
 	}
 
-	@Override
-	public String toString() {
-		return "EquipS{" +
-				"card='" + card + '\'' +
-				", status='" + status + '\'' +
-				'}';
+	public EquipS( String card,String status, String  prisoner) {
+		this.prisoner = prisoner;
+		this.card = card;
+		this.status = status;
+	}
+
+	public String getPrisoner() {
+		return prisoner;
+	}
+
+	public void setPrisoner(String prisoner) {
+		this.prisoner = prisoner;
 	}
 
 	public String getCard() {

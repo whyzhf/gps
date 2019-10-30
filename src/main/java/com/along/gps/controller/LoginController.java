@@ -47,7 +47,7 @@ import static com.along.gps.util.SystemUtil.ORDERMAP;
 @RequestMapping(value = "Order")
 public class LoginController {
     @Resource
-    private GpsService carService;
+    private GpsService gpsService;
 
 
     /**
@@ -95,7 +95,7 @@ public class LoginController {
                       //  resmap.put("data",map);
                         if(map.size()==cardArr.length){
                             map.forEach((K,V)->{
-                                list.add(new EquipS(K,V));
+                                list.add(new EquipS(K,V,gpsService.getPrisoner(K)));
                             });
                             resmap.put("data",list);
                             return resmap;
@@ -106,7 +106,7 @@ public class LoginController {
                         ORDERMAP.remove(card+userId+"0120");
                         if(map.size()==cardArr.length){
                             map.forEach((K,V)->{
-                                list.add(new EquipS(K,V));
+                                list.add(new EquipS(K,V,gpsService.getPrisoner(K)));
                             });
                             resmap.put("data",list);
                             return resmap;
@@ -134,7 +134,7 @@ public class LoginController {
                 ORDERMAP.remove(card+userId+"0120");
                 if(map.size()==cardArr.length){
                     map.forEach((K,V)->{
-                        list.add(new EquipS(K,V));
+                        list.add(new EquipS(K,V,gpsService.getPrisoner(K)));
                     });
                     resmap.put("data",list);
                     return resmap;
@@ -164,7 +164,7 @@ public class LoginController {
            /* if (resmap.get(taskId)!=null){
                 return resmap;
             }*/
-            map.put("data",carService.getfile(taskId));
+            map.put("data",gpsService.getfile(taskId));
             return map;
         } catch (Exception e) {
             e.printStackTrace();

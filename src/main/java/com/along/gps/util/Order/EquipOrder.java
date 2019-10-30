@@ -47,4 +47,12 @@ public class EquipOrder {
 		//保存设备命令日志
 		saveOrderToLog(cxt, order);
 	}
+
+	public static void sendToWebPL(ChannelHandlerContext cxt,String order){
+		//将命令转换成ByteBuf
+		char[] chars = order.toCharArray();
+		cxt.writeAndFlush(chars);
+		//保存设备命令日志
+		saveOrderToLog(cxt, order);
+	}
 }

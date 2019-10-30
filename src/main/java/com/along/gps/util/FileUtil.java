@@ -27,6 +27,9 @@ public class FileUtil {
 		//String path =SysUtil.LOCAL_DATA_LOCATION;
 		String path =SysUtil.WEB_DATA_LOCATION;
 		String fileName=FindFile(taskId);
+		if ("".equals(fileName)){
+			return null;
+		}
 		String url=path+"/"+fileName;
 		try {
 			//return readFile(url);
@@ -85,8 +88,8 @@ public class FileUtil {
 		unicodeReader.close();
 		fis.close();
 		br.close();
-		//long end = System.currentTimeMillis();
-		//System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
+		long end = System.currentTimeMillis();
+		System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
 
 		return resList;
 	}
@@ -119,7 +122,7 @@ public class FileUtil {
 		fis.close();
 		br.close();
 		long end = System.currentTimeMillis();
-		System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间毫秒="+(end-start));
+		//System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间毫秒="+(end-start));
 
 		return list;
 	}
@@ -172,6 +175,7 @@ public class FileUtil {
 			}
 		}
 		// 打印符合要求的文件名
+	//	System.out.println(fileName);
 		return fileName;
 	}
 
