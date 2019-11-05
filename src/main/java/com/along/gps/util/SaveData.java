@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.stereotype.Component;
 
+
 import javax.annotation.PostConstruct;
 import javax.websocket.Session;
+
 import java.io.*;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -96,7 +98,7 @@ public class SaveData  {
 		gd.setEquipmentId(1);//id:需要编号做匹配
 		gd.setEquipmentCardId(arr[0]);
 		gd.setTaskId(saveData.gpsService.getTaskByEquipId(arr[0]));//id:需要编号做匹配
-		gd.setTaskId(548);//id:需要编号做匹配
+		//gd.setTaskId(548);//id:需要编号做匹配
 		return gd;
 	}
 
@@ -154,8 +156,9 @@ public class SaveData  {
 			gdd.setStauts("");
 			gdd.setType("");
 			gdd.setTime(or.getUptime());
+			or.setUptime(null);
 			gdd.setOutboundRoadlog(or);
-
+			gdd.setErrorStatus(str.contains("未定位")?"未定位":"无");
 			return gdd;
 		}else{
 			return null;
@@ -409,6 +412,7 @@ public class SaveData  {
 								synchronized (session) {*/
 									//session.getBasicRemote().sendObject(data);
 									session.getBasicRemote().sendText("{\"data\":"+line+"}");
+									//session.sendText("{\"data\":"+line+"}");
 							/*	}
 							}
 						}

@@ -212,34 +212,38 @@ public class GpsServer {
 										sendOrderDemo(hexStr);
 
 										//WebSocketController.sendMessageDemo2("接收到的消息："+ hexStr);
-										//保存连接通道
-										if( ContextMap.get(ctx).getCard()==null){
+										//初次查询设备状态
+										if( ContextMap.get(ctx).getCard()==null && ContextMap.get(ctx).getStatus()==0){
+										//	System.out.println("1111111");
 											selEquipStatus(ctx,"00");
 										}
 										//发送更新设备状态，30分钟更新一次（非设备异常情况下）
 										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){
+											//System.out.println("2222222");
 											selEquipStatus(ctx,ContextMap.get(ctx).getCard());
 										}
-
 										//数据处理
 										if (hexStr.startsWith("7E 02 00")) {//定位信息
 											GpsDescData gpsDescData = httpData2(hexStr);
-											//加上设备状态
-											gpsDescData.setStauts("  "+ContextMap.get(ctx).getPower()+"(电量)    "+ ContextMap.get(ctx).getDeploy()+" "
-													+ ContextMap.get(ctx).getClog()+" "+ ContextMap.get(ctx).getDemolition()+" "
-													+ ContextMap.get(ctx).getLock()+" "+ ContextMap.get(ctx).getOnAndoff()+" ");
-											gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
-											gpsDescData.setEquipCard(ContextMap.get(ctx).getCard());
-											new Thread(() -> {//存储gps日志
-												saveMsgToLog(ctx, hexStr);
-												if (gpsDescData != null) {//存储gps数据
-													new SaveData().saveDataToLog(gpsDescData);
-												}
-											}).start();
 
 											if (gpsDescData != null) {
+												//加上设备状态
+												gpsDescData.setStauts("  "+ContextMap.get(ctx).getPower()+"(电量)    "+ ContextMap.get(ctx).getDeploy()+" "
+														+ ContextMap.get(ctx).getClog()+" "+ ContextMap.get(ctx).getDemolition()+" "
+														+ ContextMap.get(ctx).getLock()+" "+ ContextMap.get(ctx).getOnAndoff()+" ");
+												gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
+												gpsDescData.setEquipCard(ContextMap.get(ctx).getCard());
+												new Thread(() -> {//存储gps日志
+													saveMsgToLog(ctx, hexStr);
+													if (gpsDescData != null) {//存储gps数据
+														new SaveData().saveDataToLog(gpsDescData);
+													}
+												}).start();
+
 												//发送gps数据
-												WebSocketController.sendMessage2(gpsDescData);
+												if(!"未定位".equals(gpsDescData.getErrorStatus())) {
+													WebSocketController.sendMessage2(gpsDescData);
+												}
 												ContextMap.get(ctx).setTaskId(gpsDescData.getOutboundRoadlog().getTaskId());
 												if (ContextMap.get(ctx)==null){//保存电话号码 通过电话号码判断定位信息发送到哪个任务
 													Equip equip=new Equip();
@@ -262,7 +266,7 @@ public class GpsServer {
 											String num=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
 											String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
 											//读取命令反馈
-											System.out.println(num+user+str[10]+str[11]+"::"+retuenPowerOrder(str[12]));
+											//System.out.println(num+user+str[10]+str[11]+"::"+retuenPowerOrder(str[12]));
 											ORDERMAP.put(num+user+str[10]+str[11],retuenPowerOrder(str[12]));
 											if("12".equals(str[10])){//解析状态
 												ContextMap.get(ctx).setPower(get10HexNum(str[11])+"%");
@@ -328,6 +332,7 @@ public class GpsServer {
 											if ("A0".equals(str[10])){//异常反馈
 												saveOrderToLog(ctx, hexStr);
 												//触发设备状态查询
+											//	System.out.println("3333333");
 												selEquipStatus(ctx,num);
 												//发送预警信息
 												WebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),num,ERRORMAP.get(str[11])));
@@ -346,6 +351,7 @@ public class GpsServer {
 									System.out.println(ctx.channel().remoteAddress() + "->tcp连接成功");
 									Equip equip=new Equip();
 									equip.setStatus(0);
+									equip.setErrorStatus("gps定位成功");
 									ContextMap.put(ctx,equip);
 									selEquipStatus(ctx,"00");
 								}
@@ -356,6 +362,7 @@ public class GpsServer {
 								@Override
 								public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 									System.out.println(ctx.channel().remoteAddress() + "->tcp断开连接");
+									WebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),ContextMap.get(ctx).getCard(),"gps掉线"));
 									ContextMap.remove(ctx);
 								}
 
@@ -369,10 +376,11 @@ public class GpsServer {
 								 * 异常
 								 */
 								@Override
-								public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
-										throws Exception {
+								public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 									cause.printStackTrace();
 									System.out.println(ctx.channel().remoteAddress() + "->tcp异常:断开连接");
+									System.out.println(ErrorMsg(ContextMap.get(ctx).getTaskId(), ContextMap.get(ctx).getCard(), "gps掉线"));
+									WebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),ContextMap.get(ctx).getCard(),"gps掉线"));
 									ctx.close();// 关闭客户端
 									ContextMap.remove(ctx);
 								}
@@ -515,7 +523,7 @@ public class GpsServer {
 		in.close();
 		br.close();
 		long end = System.currentTimeMillis();
-		System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间毫秒="+(end-start));
+	//	System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间毫秒="+(end-start));
 		list=null;
 		return list;
 	}

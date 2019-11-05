@@ -33,9 +33,9 @@ public class GpsApplication {
 	 * @return
 	 * @description 异步调用定时器，可以在  ScheduleUtil  类里写定时方法
 	 */
-	 @EnableAsync
-	 @Configuration
-	class TaskPoolConfig {
+	// @EnableAsync
+	// @Configuration
+	//class TaskPoolConfig {
 	 // 核心线程数（setCorePoolSize）10：线程池创建时候初始化的线程数
 	 // 最大线程数（setMaxPoolSize）20：线程池最大的线程数，只有在缓冲队列满了之后才会申请超过核心线程数的线程
 	 // 缓冲队列（setQueueCapacity）200：用来缓冲执行任务的队列
@@ -58,7 +58,7 @@ public class GpsApplication {
 		 executor.setAwaitTerminationSeconds(60);
 		 return executor;
 		 }*/
-	 }
+	// }
 
 
 }

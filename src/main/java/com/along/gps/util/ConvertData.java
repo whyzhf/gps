@@ -140,6 +140,7 @@ public class ConvertData {
 						isDw="定位";
 					}else{
 						isDw="未定位";
+					//	return "-1";//移除未定位数据
 					}
 					sb.append(isDw);
 					sb.append(";");

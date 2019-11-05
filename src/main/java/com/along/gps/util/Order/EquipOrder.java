@@ -18,13 +18,21 @@ import static com.along.gps.util.SystemUtil.ORDERMAP;
 public class EquipOrder {
 	//开启布防，设置时间
 	public static void InitialSetup(ChannelHandlerContext cxt, String equip){
-		sendToWeb(cxt,send(equip, "9175040", 17));
-		sendToWeb(cxt,send(equip, "9175040", 13));
-
+		new Thread(()->{
+			sendToWeb(cxt,send(equip, "9175040", 17));
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			sendToWeb(cxt,send(equip, "9175040", 13));
+		}).start();
 	}
 	//查询设备状态
 	public static void selEquipStatus(ChannelHandlerContext cxt,String equipId){
-		sendToWeb(cxt,sendStatus(equipId));
+		new Thread(()->{
+			sendToWeb(cxt,sendStatus(equipId));
+		}).start();
 	}
 
 	//设置是否电击状态
@@ -33,7 +41,7 @@ public class EquipOrder {
 
 	}
 
-	//send 发送电击命令
+	//send 发送电击命令(不适用)
 	public static String sendOrder(String equipId,String UserID){
 	//	UserID = (1000000+Integer.parseInt(UserID))+"";
 		return send(equipId,UserID,15);

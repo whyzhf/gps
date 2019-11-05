@@ -90,7 +90,7 @@ public class EquipUtil {
 		arr2=sb.toString().split("(?<=\\G.{2})");
 		str= arr2[0]+arr2[1]+"#"+arr2[2]+" "+arr2[3]+" "+arr2[4]+" "+arr2[5]+"#"+arr2[6]+" "+arr2[7]+" "+arr2[8]+" "+arr2[9]
 				+"#"+arr2[10]+" "+arr2[11]+" "+arr2[12]+"#"+arr2[13]+" "+arr2[14]+" "+arr2[15]+" "+arr2[16]+" "+arr2[17]+" "+arr2[18]+"$"+arr2[19];
-		System.out.println("send:"+str);
+		//System.out.println("send:"+str);
 		return sb.toString();
 	}
 

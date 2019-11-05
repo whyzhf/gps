@@ -8,6 +8,11 @@ server:
     session:
       timeout: 1800S
   ##  error: whitelabel: enabled: false
+
+#  compression:
+#      mime-types: application/javascript,text/css,application/json,application/xml,text/html,text/xml,text/plain
+#      enabled: true
+
 spring:
   profiles:
     active: dev #设置开发环境
@@ -72,4 +77,9 @@ pagehelper:
   reasonable: true
   support-methods-arguments: true
 
+
+netty-websocket:
+  host: 0.0.0.0
+  path: /
+  port: 80
 
