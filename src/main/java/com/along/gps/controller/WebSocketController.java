@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 
-import static com.along.gps.util.GpsServer.readTxt1;
+
 import static com.along.gps.util.GpsServer.send;
 import static com.along.gps.util.SaveData.read;
 

@@ -18,7 +18,7 @@ public class initServer implements CommandLineRunner {
 		new Thread(){
 			public void run() {
 				System.out.println("开始启动netty...");
-				new GpsServer().openNettyServer(8898);
+				new GpsServer().openNettyServer(8899);
 				SystemUtil.sessionmap=new ConcurrentHashMap<>();
 				new ErrorMsg();
 			}

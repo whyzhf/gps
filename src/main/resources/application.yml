@@ -78,8 +78,8 @@ pagehelper:
   support-methods-arguments: true
 
 
-netty-websocket:
-  host: 0.0.0.0
-  path: /
-  port: 80
+#netty-websocket:
+#  host: 0.0.0.0
+#  path: /
+#  port: 80
 

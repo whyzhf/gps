@@ -20,6 +20,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -27,6 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.along.gps.controller.WebSocketController.sendOrderDemo;
+import static com.along.gps.util.DataUtil.StringToLong;
+import static com.along.gps.util.DataUtil.getNowData;
 import static com.along.gps.util.Order.EquipOrder.*;
 import static com.along.gps.util.Order.ErrorMsg.ERRORMAP;
 import static com.along.gps.util.Order.HexadecimalUtil.*;
@@ -34,7 +37,7 @@ import static com.along.gps.util.Order.HexadecimalUtil.get10HexNum;
 import static com.along.gps.util.Order.OrderUtil.retuenPowerOrder;
 import static com.along.gps.util.Order.OrderUtil.sendStatus;
 import static com.along.gps.util.SaveData.*;
-import static com.along.gps.util.SystemUtil.ORDERMAP;
+import static com.along.gps.util.SystemUtil.*;
 
 
 public class GpsServer {
@@ -45,133 +48,10 @@ public class GpsServer {
 	 */
 	public static void main(String args[]) {
 		new GpsServer().openNettyServer(8899);
-	//	new GpsServer().openServer(8800);
-
-	}
-
-	/**
-	 * 服务器相关
-	 */
-	private ServerSocketChannel ssc;
-	private Selector sel;
-
-
-	/**
-	 * 启动服务
-	 */
-	private void openServer(int port) {
-		try {
-
-			ssc = ServerSocketChannel.open();
-			ssc.bind(new InetSocketAddress(port));
-			ssc.configureBlocking(false);
-			sel = Selector.open();
-			ssc.register(sel, SelectionKey.OP_ACCEPT);
-			System.out.println("初始化服务器...");
-		} catch (IOException ex) {
-			Logger.getLogger(GpsServer.class.getName()).log(Level.SEVERE, null, ex);
-		}
-
-	}
-
-	/**
-	 * 监听sel多路复合选择器
-	 */
-	private void listen() {
-		openServer(8894);
-		System.out.println("开始监听...");
-		while (true) {
-			try {
-				sel.select();
-				Iterator<SelectionKey> keys = sel.selectedKeys().iterator();
-				while (keys.hasNext()) {
-					SelectionKey key = keys.next();
-					// 删除已选key，防止重复处理
-					keys.remove();
-					// sel.selectNow();
-					if (key.isAcceptable()) {
-						ServerSocketChannel server = (ServerSocketChannel) key.channel();
-						SocketChannel sc = server.accept();
-						sc.configureBlocking(false);
-						sc.register(sel, SelectionKey.OP_READ);
-
-						System.out.println(sc.socket().getInetAddress().getHostAddress() + ":" + sc.socket().getPort()
-								+ "->tcp连接成功");
-					}
-					if (key.isReadable()) {
-						System.out.println("开始读取数据...");
-						SocketChannel sc = (SocketChannel) key.channel();
-						ByteBuffer bf = ByteBuffer.allocate(1024);
-						int len;
-						StringBuilder sb = new StringBuilder();
-						try {
-							while ((len = sc.read(bf)) > 0) {
-								bf.flip();// 翻转指针
-								byte[] data = bf.array();
-								for (int i = 0; i < len; i++) {
-									// sb.append(byteToHex(data[i]) + " ");
-								}
-								bf.clear();
-								//System.out.println("11111111111");
-							}
-
-							if (!sb.toString().trim().equals("")) {
-
-								// 去掉前后空格
-								// addClient(sc, sb.toString().trim());
-								//saveMsgToLog(sc, sb.toString().trim());
-								//saveData(sb.toString().trim());
-								// System.out.println(sb.toString().trim());
-							}
-
-						} catch (Exception ex) {
-							ex.printStackTrace();
-							key.cancel();
-							//sc.close();
-
-							sc.socket().close();
-							sc.close();
-						}
-
-					}
-
-				}
-			} catch (IOException ex) {
-				Logger.getLogger(GpsServer.class.getName()).log(Level.SEVERE, null, ex);
-			}
-
-		}
 	}
 
 
 
-	/**
-	 * 保存到数据库
-	 *
-	 * @param hexData
-	 */
-	private void saveData(ChannelHandlerContext ctx, String hexData) {
-		// gps上传数据
-		if (hexData.startsWith("7E 02 00")) {
-			// 检查数据有效性
-			if (ConvertData.checkData(hexData)) {
-				//saveMsgToLog(ctx, hexData);
-				String data = ConvertData.getHexMsgToString(hexData);
-				String[] strArr = data.split(";");
-				System.out.println(data);
-				//	service.updateData(strArr);
-
-			} else {
-				System.out.println("数据格式校验未通过...");
-			}
-
-		} else if (hexData.startsWith("7E 07 04")) {// 批量上传或是补传
-
-		} else {
-			// 不处理
-		}
-
-	}
 
 	/**
 	 * 基于netty启动服务，并开启监听
@@ -179,7 +59,10 @@ public class GpsServer {
 	 */
 
 	public void openNettyServer(int port) {
+		//创建通道保存集合
 		ContextMap=new ConcurrentHashMap<>();
+		//开启数据存储线程
+		ThreadUtil.init();
 		EventLoopGroup group = new NioEventLoopGroup();// 连接服务对象
         EventLoopGroup workGroup = new NioEventLoopGroup();// 读写服务对象
 		try {
@@ -208,41 +91,41 @@ public class GpsServer {
 										// 转义
 										String hexStr = ConvertData.replaceData(sb.toString().trim());
 										//测试命令收发
-										System.out.println(hexStr);
 										sendOrderDemo(hexStr);
 
-										//WebSocketController.sendMessageDemo2("接收到的消息："+ hexStr);
 										//初次查询设备状态
 										if( ContextMap.get(ctx).getCard()==null && ContextMap.get(ctx).getStatus()==0){
-										//	System.out.println("1111111");
 											selEquipStatus(ctx,"00");
 										}
 										//发送更新设备状态，30分钟更新一次（非设备异常情况下）
 										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){
-											//System.out.println("2222222");
 											selEquipStatus(ctx,ContextMap.get(ctx).getCard());
 										}
 										//数据处理
 										if (hexStr.startsWith("7E 02 00")) {//定位信息
 											GpsDescData gpsDescData = httpData2(hexStr);
-
 											if (gpsDescData != null) {
 												//加上设备状态
 												gpsDescData.setStauts("  "+ContextMap.get(ctx).getPower()+"(电量)    "+ ContextMap.get(ctx).getDeploy()+" "
 														+ ContextMap.get(ctx).getClog()+" "+ ContextMap.get(ctx).getDemolition()+" "
 														+ ContextMap.get(ctx).getLock()+" "+ ContextMap.get(ctx).getOnAndoff()+" ");
-												gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
-												gpsDescData.setEquipCard(ContextMap.get(ctx).getCard());
-												new Thread(() -> {//存储gps日志
-													saveMsgToLog(ctx, hexStr);
-													if (gpsDescData != null) {//存储gps数据
-														new SaveData().saveDataToLog(gpsDescData);
-													}
-												}).start();
 
+												gpsDescData.setEquipCard(ContextMap.get(ctx).getCard());
+
+												//存储gps日志
+												saveMsgToLog(ctx, hexStr);
+												/*if (gpsDescData != null) {//存储gps数据
+													new SaveData().saveDataToLog(gpsDescData);
+
+												}*/
 												//发送gps数据
 												if(!"未定位".equals(gpsDescData.getErrorStatus())) {
+													gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
 													WebSocketController.sendMessage2(gpsDescData);
+													//在SaveData.saveRedis()方法中将数据存储到redis;
+													SystemUtil.gpsDatalist.add(gpsDescData);
+												}else{
+													gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
 												}
 												ContextMap.get(ctx).setTaskId(gpsDescData.getOutboundRoadlog().getTaskId());
 												if (ContextMap.get(ctx)==null){//保存电话号码 通过电话号码判断定位信息发送到哪个任务
@@ -265,6 +148,7 @@ public class GpsServer {
 											String[]str=hexStr.split(" ");
 											String num=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
 											String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
+
 											//读取命令反馈
 											//System.out.println(num+user+str[10]+str[11]+"::"+retuenPowerOrder(str[12]));
 											ORDERMAP.put(num+user+str[10]+str[11],retuenPowerOrder(str[12]));
@@ -332,7 +216,6 @@ public class GpsServer {
 											if ("A0".equals(str[10])){//异常反馈
 												saveOrderToLog(ctx, hexStr);
 												//触发设备状态查询
-											//	System.out.println("3333333");
 												selEquipStatus(ctx,num);
 												//发送预警信息
 												WebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),num,ERRORMAP.get(str[11])));
@@ -370,8 +253,6 @@ public class GpsServer {
 								public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
 
 								}
-
-
 								/**
 								 * 异常
 								 */
@@ -397,10 +278,7 @@ public class GpsServer {
 
 			// 绑定端口，并开启异步阻塞
 			ChannelFuture f = b.bind(port).sync();
-		//	System.out.println(f.toString());
 			System.out.println("服务器启动，开始监听：" + f.channel().localAddress());
-
-			//listen();
 			// 等待客户端关闭，并阻塞，阻止main运行结束
 			f.channel().closeFuture().sync();
 
@@ -412,19 +290,7 @@ public class GpsServer {
 		}
 	}
 
-	/**
-	 * 保存数据
-	 *
-	 * @param ctx
-	 * @param hexData
-	 */
-	private void saveMsg(ChannelHandlerContext ctx, String hexData) {
-		if (!hexData.equals("")) {
-			// 去掉前后空格
-			saveData(ctx, hexData);
 
-		}
-	}
 
 	/***********************************发送数据*****************************************/
 
@@ -450,7 +316,6 @@ public class GpsServer {
 	public static void sendPower(String card,String userId) {
 		System.out.println("开始电击...");
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
-		//System.out.println(card);
 		String orderStr=sendOrder(card,userId);
 		byte[]order=hexStringToByteArray(orderStr);
 		if(ctx!=null) {
@@ -476,7 +341,7 @@ public class GpsServer {
 	//通过手机号找设备号
 	public static String getcardByNum(Map<ChannelHandlerContext,Equip> map,String value){
 		String card="";
-		if (map==null){
+		if (map==null && map.isEmpty()){
 			return card;
 		}
 		for (Map.Entry<ChannelHandlerContext, Equip> entry : map.entrySet()) {
@@ -489,6 +354,9 @@ public class GpsServer {
 	//通过设备号找通道
 	private static ChannelHandlerContext getKeyByCard(Map<ChannelHandlerContext,Equip> map,String value){
 		ChannelHandlerContext key=null;
+		if (map==null && map.isEmpty()){
+			return key;
+		}
 		for (Map.Entry<ChannelHandlerContext, Equip> entry : map.entrySet()) {
 			if(value.equals(entry.getValue().getCard())){
 				key=entry.getKey();
@@ -501,48 +369,13 @@ public class GpsServer {
 		//获取到设备id
 		//开启布防，设置时间
 		//查询设备状态
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		 InitialSetup(cxt,equipId);
 	}
 
-	public static List<String> readTxt1() throws IOException {
-		List<String> list=new ArrayList<>();
-		int i=0;
-		long start = System.currentTimeMillis();
-		File file = new File("E:\\gpsData\\548-json.txt");
-		Reader in = new FileReader(file);
-		BufferedReader br = new BufferedReader(in);
-		System.out.println("start.....");
-		while(br.ready()) {
-			//System.out.println(br.readLine());
-			//br.readLine();
-			//JSONObject jsonObject = JSONObject.parseObject(br.readLine());
-			list.add(br.readLine());
-			i++;
-		}
 
-		in.close();
-		br.close();
-		long end = System.currentTimeMillis();
-	//	System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间毫秒="+(end-start));
-		list=null;
-		return list;
-	}
-
-	/***********************************************************/
-	public static void sendPower2(String card,String userId) {
-		System.out.println("开始电击...");
-		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
-		//System.out.println(card);
-		String orderStr=sendOrder(card,userId);
-		byte[]order=hexStringToByteArray(orderStr);
-		if(ctx!=null) {
-			//将命令转换成ByteBuf
-			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
-			//发送命令
-			ctx.writeAndFlush(byteBuf);
-			//保存设备命令日志
-			saveOrderToLog(ctx, orderStr);
-			ORDERMAP.put(card+userId+"0120","0");
-		}
-	}
 }

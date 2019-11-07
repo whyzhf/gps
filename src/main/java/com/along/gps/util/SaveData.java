@@ -4,6 +4,7 @@ package com.along.gps.util;
 
 import com.alibaba.fastjson.JSON;
 
+import com.alibaba.fastjson.JSONObject;
 import com.along.gps.entity.GPS;
 import com.along.gps.entity.GpsDescData;
 import com.along.gps.entity.OutboundRoadlog;
@@ -22,8 +23,12 @@ import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static com.along.gps.util.DataUtil.StringToLong;
 import static com.along.gps.util.DataUtil.getNowData;
+import static com.along.gps.util.SystemUtil.gpsloglist;
+import static com.along.gps.util.SystemUtil.orderloglist;
 
 /**
  * 数据处理
@@ -134,11 +139,6 @@ public class SaveData  {
 		}
 
 	}
-	public static String SendGpsData(String taskId){
-	//	System.out.println("GPS_DATA.get(taskId):"+GPS_DATA.get(taskId).size());
-		return JSON.toJSONString(GPS_DATA.get(taskId));
-	}
-
 
 	public static  List<OutboundRoadlog> list=new ArrayList<>();
 
@@ -185,15 +185,25 @@ public class SaveData  {
 		 GPS_DATA.clear();
 	}
 
+
+
+	//保存到redis
+	public static JedisUtil jutil = JedisUtil.getInstance();// jedis工具对象
+	public static void saveRedis(){
+			GpsDescData poll = SystemUtil.gpsDatalist.poll();
+			//写入文件夹
+			saveDataToLog(poll);
+			//存入缓存
+			String key=poll.getOutboundRoadlog().getTaskId()+"";
+			double score=StringToLong(poll.getTime(),"yyyy-MM-dd HH:mm:ss").doubleValue();
+			String jsonString = JSONObject.toJSONString(poll);
+			jutil.SORTSET.zadd(key,score, jsonString);
+			jutil.expire(key, 60 * 60 * 24 * 7);
+
+	}
+
 	//保存到数据库
-//	@Scheduled(fixedRate = 10000)
 	public static void saveDataBySql(){
-		/*List<OutboundRoadlog> list=new ArrayList<>();
-		GPS_DATA.forEach((K,V)->{
-			V.forEach((A,B)->{
-				B.forEach(e->list.add(e.getOutboundRoadlog()));
-			});
-		});*/
 		if (list.size()>0) {
 			saveData.gpsService.saveGpsData(list);
 			list=new ArrayList<>();
@@ -207,25 +217,17 @@ public class SaveData  {
 	 *
 	 * @param msg
 	 */
-	public synchronized static void saveMsgToLog(ChannelHandlerContext ctx, String msg) {
-		String hexStr = msg;
-		String txt = ConvertData.getHexMsgToString(msg);
-		StringBuilder sb = new StringBuilder();
-
-		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
-
-		String address = ctx.channel().remoteAddress()+"";
-
-		sb.append(time + " # ");
-		sb.append(address + " # ");
-		// sb.append();
+	public synchronized static void saveMsgToLog( String msg) {
+		String[] strings = msg.split("&&");
+		String hexStr = strings[0];
+		String txt = strings[1];
 		Writer w = null;
 		BufferedWriter bw = null;
 		Writer w1 = null;
 		BufferedWriter bw1 = null;
 		try {
-			String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-json.txt";
-			String FileName1 = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-hex.txt";
+			String FileName = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "-json.txt";
+			String FileName1 = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "-hex.txt";
 			File dir = new File(SysUtil.WEB_LOG_LOCATION);
 			if (!dir.exists()) {
 				dir.mkdirs();
@@ -238,14 +240,14 @@ public class SaveData  {
 			}
 			w = new FileWriter(f, true);
 			bw = new BufferedWriter(w);
-			bw.write(sb.toString() + txt + "\r\n");
+			bw.write(txt + "\r\n");
 			// 写入16进制
 			if (!f1.exists()) {
 				f1.createNewFile();
 			}
 			w1 = new FileWriter(f1, true);
 			bw1 = new BufferedWriter(w1);
-			bw1.write(sb.toString() + hexStr + "\r\n");
+			bw1.write( hexStr + "\r\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -263,19 +265,33 @@ public class SaveData  {
 		}
 
 	}
+	//gps命令
+	public synchronized static void saveMsgToLog(ChannelHandlerContext ctx, String msg) {
+		String txt = ConvertData.getHexMsgToString(msg);
+		StringBuilder sb = new StringBuilder();
+		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+		String address = ctx.channel().remoteAddress()+"";
+		sb.append(time + " # ");
+		sb.append(address + " : [");
+		sb.append(msg.replace(" ",""));
+		gpsloglist.add(sb.toString()+"\r\n"+txt+"]");
 
+	}
+	//脚扣命令
 	public synchronized static void saveOrderToLog(ChannelHandlerContext ctx, String msg) {
-		String hexStr = msg;
 		StringBuilder sb = new StringBuilder();
 		String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
 		String address = ctx.channel().remoteAddress()+"";
 		sb.append(time + " # ");
 		sb.append(address + " # ");
-		// sb.append();
+		sb.append(" :"+msg) ;
+		orderloglist.add(sb.toString());
+	}
+	/*public  static void saveOrderToLog( String msg) {
 		Writer w = null;
 		BufferedWriter bw = null;
 		try {
-			String FileName = new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date()) + "-Order.txt";
+			String FileName = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "-Order.txt";
 			File dir = new File(SysUtil.WEB_LOG_LOCATION);
 			if (!dir.exists()) {
 				dir.mkdirs();
@@ -287,7 +303,7 @@ public class SaveData  {
 			}
 			w = new FileWriter(f, true);
 			bw = new BufferedWriter(w);
-			bw.write(sb.toString() + msg + "\r\n");
+			bw.write(  msg + "\r\n");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -303,19 +319,20 @@ public class SaveData  {
 		}
 
 	}
+*/
+
+
 	/**
 	 * 将数据写入日志文件
 	 *
 	 * @param msg
 	 */
-	public synchronized  void saveDataToLog( GpsDescData msg) {
-		//System.out.println("11111s");
+	public static   void saveDataToLog( GpsDescData msg) {
 		Writer w = null;
 		BufferedWriter bw = null;
 		try {
 			String FileName = msg.getOutboundRoadlog().getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
 			File dir = new File(SysUtil.WEB_DATA_LOCATION);
-			//File dir = new File(SysUtil.LOCAL_DATA_LOCATION);
 			if (!dir.exists()) {
 				dir.mkdirs();
 			}
@@ -340,6 +357,44 @@ public class SaveData  {
 			}
 		}
 	}
+
+	//写入文件方法
+	public  static  void pubWriterFile(String FileName,String FileUrl,ConcurrentLinkedQueue<String> text){
+		Writer w = null;
+		BufferedWriter bw = null;
+		try {
+			File dir = new File(FileUrl);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			// 写入文本
+			File f = new File(dir + "/" + FileName);
+
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			w = new FileWriter(f, true);
+			bw = new BufferedWriter(w);
+			while (!text.isEmpty()) {
+				bw.write(text.poll() + "\r\n");
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				bw.close();
+				w.close();
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+
 /****************************************************************/
 	public  synchronized static void saveLog( String msg) {
 		Writer w = null;

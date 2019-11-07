@@ -15,6 +15,18 @@ public class DataUtil {
 			e.printStackTrace();
 		}
 	}
+	//时间字符串转long(到精确到ms)"yyyy-MM-dd HH:mm:ss"
+	public static Long StringToLong(String str,String strFormat){
+		DateFormat df = new SimpleDateFormat(strFormat);
+		Date date =new Date();
+		try {
+			date = df.parse(str);
+		} catch (ParseException pe) {
+			System.out.println(pe.getMessage());
+		}
+		return date.getTime();
+	}
+
 	/**
 	 * 获取当前时间
 	 * */

@@ -4,7 +4,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.along.gps.util.GpsServer.ContextMap;
@@ -14,6 +16,7 @@ import static com.along.gps.util.Order.OrderUtil.send;
 import static com.along.gps.util.Order.OrderUtil.sendStatus;
 import static com.along.gps.util.SaveData.saveOrderToLog;
 import static com.along.gps.util.SystemUtil.ORDERMAP;
+import static com.along.gps.util.SystemUtil.orderloglist;
 
 public class EquipOrder {
 	//开启布防，设置时间
@@ -54,6 +57,7 @@ public class EquipOrder {
 		cxt.writeAndFlush(byteBuf);
 		//保存设备命令日志
 		saveOrderToLog(cxt, order);
+
 	}
 
 	public static void sendToWebPL(ChannelHandlerContext cxt,String order){
