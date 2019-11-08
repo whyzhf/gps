@@ -1,6 +1,7 @@
 package com.along.gps.dao;
 
 import com.along.gps.config.CacheExpire;
+import com.along.gps.entity.NgpsData;
 import com.along.gps.entity.OutboundRoadlog;
 
 import com.along.gps.entity.TaskArea;
@@ -8,6 +9,7 @@ import com.along.gps.entity.TaskEquip;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
@@ -16,6 +18,8 @@ public interface GpsDao {
 	@InsertProvider(type = SqlProvider.class, method = "saveGpsData")
 	boolean saveGpsData(@Param("list") List<OutboundRoadlog> list);
 
+	@InsertProvider(type = SqlProvider.class, method = "saveGpsLogData")
+	boolean saveGpsLogData(@Param("list") List<NgpsData> list);
 
 	@Select(" SELECT  CONCAT_WS(' ',p.name,p.card)\n" +
 			" FROM outbound_prisoner  p \n" +
@@ -60,5 +64,9 @@ public interface GpsDao {
 
 	@Select(" SELECT DISTINCT id from outbound_task where status=3 and area_id=${areaId}")
 	List<Integer> getTaskArea(@Param("areaId") String areaId);
+
+	@Update("UPDATE outbound_equipment " +
+			"SET numb=#{numb} WHERE card=#{card}")
+	int addNumb(@Param("numb") String numb,@Param("card") String card);
 
 }

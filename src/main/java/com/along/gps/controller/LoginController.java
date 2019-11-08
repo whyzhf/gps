@@ -25,10 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.along.gps.controller.NettyWebSocketController.sendMessage2;
 import static com.along.gps.util.Gps.GpsHandleServer.*;
@@ -70,83 +67,69 @@ public class LoginController {
         String[] cardArr= card.split(",");
         String userId=pubParam.get("userId");
         userId = (1000000+Integer.parseInt(userId))+"";
+        //存储已连接的card
+        List<String> caraList=new ArrayList<>();
+        ContextMap.forEach((K,V)-> System.out.println(K+"  "+V));
         for (int i = 0; i < cardArr.length; i++) {
-            if (cardArr[i].length()>8){
+            if (cardArr[i].length()>8){//统一转换成card操作
                 card = getcardByNum(ContextMap, cardArr[i]);
             }else{
                 card =cardArr[i];
             }
-            if ("".equals(card)) {
-                map.put(cardArr[i],"该设备未连接");
-                resmap.put("data",list);
-            //    resmap.put("data",map);
+            if ("".equals(card)) {//通道没有存贮该电话号码
+               // map.put(cardArr[i],"该设备未连接");
+                list.add(new EquipS(cardArr[i],"该设备未连接",""));
             }else {
+                caraList.add(cardArr[i]);
                 GpsHandleServer.sendPower(card, userId);
             }
         }
-
-        for (int j = 0; j <15 ; j++) {//15秒数据反馈
+        if (list.size()==cardArr.length){
+            resmap.put("data",list);
+            return resmap;
+        }
+        for (int i = 0; i <5 ; i++) {
             try {
-                for (int i = 0; i < cardArr.length; i++) {
-                    if (cardArr[i].length()>8){
-                        card = getcardByNum(ContextMap, cardArr[i]);
-                    }else{
-                        card =cardArr[i];
+                Iterator<String> iter = caraList.iterator();
+                while (iter.hasNext()) {
+                    String equipcard = iter.next();
+                    if (equipcard.length() > 8) {
+                        card = getcardByNum(ContextMap, equipcard);
+                    } else {
+                        card = equipcard;
                     }
-                    if(null==ORDERMAP.get(card+userId+"0120")){
-                        map.put(cardArr[i],"该设备未连接");
-                      //  resmap.put("data",map);
-                        if(map.size()==cardArr.length){
-                            map.forEach((K,V)->{
-                                list.add(new EquipS(K,V,gpsService.getPrisoner(K)));
-                            });
-                            resmap.put("data",list);
-                            return resmap;
-                        }
-                    }else if(!"0".equals(ORDERMAP.get(card+userId+"0120"))){
-                        map.put(cardArr[i],ORDERMAP.get(card+userId+"0120"));
-                     //   resmap.put("data",map);
-                        ORDERMAP.remove(card+userId+"0120");
-                        if(map.size()==cardArr.length){
-                            map.forEach((K,V)->{
-                                list.add(new EquipS(K,V,gpsService.getPrisoner(K)));
-                            });
-                            resmap.put("data",list);
-                            return resmap;
+                    if(null==ORDERMAP.get(card+userId+"0120")) {
+                        if (!"0".equals(ORDERMAP.get(card + userId + "0120"))) {
+                            list.add(new EquipS(equipcard, ORDERMAP.get(card + userId + "0120"), gpsService.getPrisoner(card)));
+                            iter.remove();
+                            ORDERMAP.remove(card + userId + "0120");
                         }
                     }
                 }
+                if (list.size() == cardArr.length) {
+                    resmap.put("data", list);
+                    return resmap;
+                }
                 Thread.sleep(1000);
-
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
-      /* ORDERMAP.forEach((K,V)->{
-            System.out.println("11........"+K+"   #    "+V);
-        });*/
-        for (int i = 0; i < cardArr.length; i++) {
-            if (cardArr[i].length()>8){
-                card = getcardByNum(ContextMap, cardArr[i]);
-            }else{
-                card =cardArr[i];
+         }
+        for (int i = 0; i < caraList.size(); i++) {
+            if (caraList.get(i).length() > 8) {
+                card = getcardByNum(ContextMap, caraList.get(i));
+            } else {
+                card = caraList.get(i);
             }
-          //  System.out.println(card + userId + "0120");
-            if("0".equals(ORDERMAP.get(card+userId+"0120"))){
-                map.put(cardArr[i],"等待超时");
-                ORDERMAP.remove(card+userId+"0120");
-                if(map.size()==cardArr.length){
-                    map.forEach((K,V)->{
-                        list.add(new EquipS(K,V,gpsService.getPrisoner(K)));
-                    });
-                    resmap.put("data",list);
-                    return resmap;
-                }
-            }
-        }
+
+            list.add(new EquipS(caraList.get(i), "等待超时", gpsService.getPrisoner(card)));
 
 
-        return  resmap;
+
+        }
+        resmap.put("data", list);
+        return resmap;
+
     }
 
 

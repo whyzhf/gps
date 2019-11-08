@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.along.gps.config.CacheExpire;
 import com.along.gps.dao.GpsDao;
 import com.along.gps.entity.HistData;
+import com.along.gps.entity.NgpsData;
 import com.along.gps.entity.OutboundRoadlog;
 import com.along.gps.entity.TaskEquip;
 import com.along.gps.service.GpsService;
@@ -22,6 +23,11 @@ import static com.along.gps.util.FileUtil.*;
 public class GpsServiceImpl implements GpsService {
 	@Resource
 	private GpsDao gpsDao;
+
+	@Override
+	public boolean saveGpsLogData(List<NgpsData> list) {
+		return gpsDao.saveGpsLogData(list);
+	}
 
 	@Override
 	public boolean saveGpsData(List<OutboundRoadlog> list) {
@@ -73,6 +79,11 @@ public class GpsServiceImpl implements GpsService {
 	@Override
 	public List<Integer> getTaskArea(String areaId) {
 		return gpsDao.getTaskArea(areaId);
+	}
+
+	@Override
+	public int addNumb(String numb, String card) {
+		return gpsDao.addNumb(numb,card);
 	}
 
 

@@ -1,5 +1,8 @@
 package com.along.gps.entity;
 
+import com.along.gps.util.Gps.ColorUtil;
+
+import javax.sound.midi.SoundbankResource;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
@@ -16,14 +19,16 @@ public class NgpsData {
 	private String equip;//设备电话号
 	private String equipCard;//设备编号
 	private String stauts;//设备状态
-	private String errorStatus;//设备异常状态
+	private String errorStatus="无";//设备异常状态
 	private BigDecimal longitude;//经度值
 	private BigDecimal latitude;//纬度值
 	private String lot;//0东经，1西经，
 	private String lat;//0：北纬；1：南纬
 	private int speed;//速度
 	private int direction;//方向
+	private String color;
 	private java.sql.Timestamp uptime;
+
 	@Override
 	public String toString() {
 		return "NgpsData{" +
@@ -40,10 +45,25 @@ public class NgpsData {
 				", lat='" + lat + '\'' +
 				", speed=" + speed +
 				", direction=" + direction +
+				", color='" + color + '\'' +
 				", uptime=" + uptime +
 				'}';
 	}
 
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String equipCard) {
+		int i =1;
+		if(equipCard.length()>2) {
+			i = Integer.parseInt(equipCard.substring(equipCard.length() - 1,equipCard.length())) % 21;
+		}else{
+			i=Integer.parseInt(equipCard)%21;
+		}
+
+		this.color = ColorUtil.COLORMAP.get(i);
+	}
 
 	public Integer getTaskId() {
 		return taskId;

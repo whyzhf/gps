@@ -2,6 +2,7 @@ package com.along.gps.web;
 
 
 //import com.along.gps.util.GpsServer;
+import com.along.gps.util.Gps.ColorUtil;
 import com.along.gps.util.Gps.GpsHandleServer;
 import com.along.gps.util.Order.ErrorMsg;
 import com.along.gps.util.SystemUtil;
@@ -22,8 +23,7 @@ public class initServer implements CommandLineRunner {
 		//		new GpsServer().openNettyServer(8899);
 				new GpsHandleServer().openNettyServer(8899);
 		//		SystemUtil.sessionmap=new ConcurrentHashMap<>();
-				SystemUtil.NETTYSESSIONMAP=new ConcurrentHashMap<>();
-				new ErrorMsg();
+
 			}
 		}.start();
 

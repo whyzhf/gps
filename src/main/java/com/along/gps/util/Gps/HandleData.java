@@ -33,11 +33,11 @@ public class HandleData {
 
 	@Autowired
 	protected   GpsService gpsService;
-	private static HandleData saveData ;
+	private static HandleData handleData ;
 	@PostConstruct //通过@PostConstruct实现初始化bean之前进行的操作
 	public void init() {
-		saveData = this;
-		saveData.gpsService = this.gpsService;
+		handleData = this;
+		handleData.gpsService = this.gpsService;
 		// 初使化时将已静态化的testService实例化
 	}
 
@@ -62,7 +62,13 @@ public class HandleData {
 	//gps to entity
 	private static NgpsData toEntity(String data) {
 		String[] arr = data.split(";");
+
 		NgpsData nd = new NgpsData();
+		nd.setEquip(arr[0]);//电话号码
+		/*if ("未定位".equals(arr[3])){
+			nd.setErrorStatus("-1");
+			return nd;
+		}*/
 		nd.setUptime(arr[9]);
 		nd.setDirection(Short.parseShort(arr[8]));
 		nd.setLat(arr[1]);
@@ -73,40 +79,33 @@ public class HandleData {
 		nd.setLongitude(new BigDecimal(gps.getLon() + ""));
 
 		nd.setSpeed(Short.parseShort(arr[7]));
-		nd.setEquip(arr[0]);//电话号码
-		String equipCard= saveData.gpsService.getEquipCard(arr[0]);
-		if(equipCard!=null&&equipCard.isEmpty()){
-		}else{
-			equipCard=getcardByNum(ContextMap,arr[0]);
-			if (!"".equals(equipCard)){
 
+		//通过电话号码在数据库查找card
+		String equipCard= handleData.gpsService.getEquipCard(arr[0]);
+		if(equipCard!=null && !equipCard.isEmpty()){
+		}else{//没找到就通过保存通道的map查找
+			equipCard=getcardByNum(ContextMap,arr[0]);
+			if (!"".equals(equipCard)){//找到后存入数据库
+				handleData.gpsService.addNumb(arr[0],equipCard);
+			}else{
+				nd.setErrorStatus("-1");
+				return nd;
 			}
 		}
 		nd.setEquipCard(equipCard);
-		nd.setTaskId(saveData.gpsService.getTaskByEquipId(equipCard));
-		nd.setPolice(saveData.gpsService.getPolice(nd.getTaskId()+""));
-		nd.setPrisoner(saveData.gpsService.getPrisoner(equipCard));
-
+		nd.setTaskId(handleData.gpsService.getTaskByEquipId(equipCard));
+		nd.setPolice(handleData.gpsService.getPolice(nd.getTaskId()+""));
+		nd.setPrisoner(handleData.gpsService.getPrisoner(equipCard));
+		nd.setColor(equipCard);
+		//System.out.println(nd);
 		return nd;
 	}
 
 
-
-
-
-	public static  List<OutboundRoadlog> list=new ArrayList<>();
-
 	public static NgpsData httpData2(String hexData){
-
 		String str=WarpData( hexData);
 		if (str.split(";").length>8) {
 			NgpsData ngd = toEntity(str);
-			ngd.setEquipCard(saveData.gpsService.getEquipId(ngd.getEquipCard())+"");
-			ngd.setPolice(saveData.gpsService.getPolice(ngd.getTaskId()+""));
-			ngd.setPrisoner(saveData.gpsService.getPrisoner(ngd.getEquipCard()));
-			ngd.setStauts("");
-			ngd.setUptime(null);
-			ngd.setErrorStatus(str.contains("未定位")?"未定位":"无");
 			return ngd;
 		}else{
 			return null;
@@ -117,8 +116,8 @@ public class HandleData {
 		WSgpsData gdd = new WSgpsData();
 			gdd.setEquip(cardId);
 			gdd.setEquipCard(cardId);
-			gdd.setPolice(saveData.gpsService.getPolice(cardId));
-			gdd.setPrisoner(saveData.gpsService.getPrisoner(cardId));
+			gdd.setPolice(handleData.gpsService.getPolice(cardId));
+			gdd.setPrisoner(handleData.gpsService.getPrisoner(cardId));
 			gdd.setStauts(status);
 			gdd.setUptime(getNowData("yyyy-MM-dd HH:mm:ss"));
 			gdd.setTaskId(taskId);
@@ -148,9 +147,15 @@ public class HandleData {
 
 	//保存到数据库
 	public static void saveDataBySql(){
-		if (list.size()>0) {
-			saveData.gpsService.saveGpsData(list);
-			list=new ArrayList<>();
+		List<NgpsData> list=new ArrayList<>();
+		long start = System.currentTimeMillis();
+		while (!GPSDATALIST.isEmpty()) {
+			list.add(GPSDATALIST.poll());
+			//数据大于500条，或者时间大于5s,保存数据
+			if (list.size()>500||System.currentTimeMillis()>start+5000L) {
+				handleData.gpsService.saveGpsLogData(list);
+				list = new ArrayList<>();
+			}
 
 		}
 	}
@@ -231,39 +236,7 @@ public class HandleData {
 		sb.append(" :"+msg) ;
 		orderloglist.add(sb.toString());
 	}
-	/*public  static void saveOrderToLog( String msg) {
-		Writer w = null;
-		BufferedWriter bw = null;
-		try {
-			String FileName = new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "-Order.txt";
-			File dir = new File(SysUtil.WEB_LOG_LOCATION);
-			if (!dir.exists()) {
-				dir.mkdirs();
-			}
-			// 写入文本
-			File f = new File(dir + "/" + FileName);
-			if (!f.exists()) {
-				f.createNewFile();
-			}
-			w = new FileWriter(f, true);
-			bw = new BufferedWriter(w);
-			bw.write(  msg + "\r\n");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				bw.close();
-				w.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 
-		}
-
-	}
-*/
 
 
 	/**

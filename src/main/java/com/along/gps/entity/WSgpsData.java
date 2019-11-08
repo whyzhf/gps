@@ -1,5 +1,7 @@
 package com.along.gps.entity;
 
+import com.along.gps.util.Gps.ColorUtil;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
@@ -20,7 +22,7 @@ public class WSgpsData {
 	private BigDecimal longitude;//经度值
 	private BigDecimal latitude;//纬度值
 	private String uptime;
-
+	private String color;
 	public WSgpsData() {
 
 	}
@@ -36,6 +38,21 @@ public class WSgpsData {
 		this.longitude = ngpsData.getLongitude();
 		this.latitude = ngpsData.getLatitude();
 		this.uptime =ngpsData.getUptime();
+		this.color=ngpsData.getColor();
+		/*if(this.equipCard.length()>2) {
+			int i = Integer.parseInt(this.equipCard.substring(this.equipCard.length() - 1, this.equipCard.length())) % 21;
+			this.color = ColorUtil.COLORMAP.get(i);
+		}else{
+			this.color = ColorUtil.COLORMAP.get(Integer.parseInt(this.equipCard)%21);
+		}*/
+	}
+
+	public String getColor() {
+		return color;
+	}
+
+	public void setColor(String color) {
+		this.color = color;
 	}
 
 	public String getPolice() {

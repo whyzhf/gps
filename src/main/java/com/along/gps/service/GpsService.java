@@ -3,6 +3,7 @@ package com.along.gps.service;
 import com.alibaba.fastjson.JSONObject;
 import com.along.gps.config.CacheExpire;
 import com.along.gps.entity.HistData;
+import com.along.gps.entity.NgpsData;
 import com.along.gps.entity.OutboundRoadlog;
 import com.along.gps.entity.TaskEquip;
 import org.apache.ibatis.annotations.Param;
@@ -16,6 +17,8 @@ import java.util.Map;
 public interface GpsService {
 
 	boolean saveGpsData( List<OutboundRoadlog> list);
+
+	boolean saveGpsLogData(List<NgpsData> list);
 
 	@Cacheable(value = "getPrisoner",key="#p0" ,unless="#result == null")
 	@CacheExpire(expire = 60*5)
@@ -34,4 +37,6 @@ public interface GpsService {
 	List<HistData> getfile(String taskId);
 
 	List<Integer> getTaskArea(String areaId);
+
+	int addNumb(String numb, String card);
 }

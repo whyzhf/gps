@@ -4,6 +4,7 @@ import com.along.gps.controller.NettyWebSocketController;
 import com.along.gps.controller.WebSocketController;
 import com.along.gps.entity.*;
 import com.along.gps.util.ConvertData;
+import com.along.gps.util.Order.ErrorMsg;
 import com.along.gps.util.SystemUtil;
 import com.along.gps.util.ThreadUtil;
 import io.netty.bootstrap.ServerBootstrap;
@@ -45,6 +46,9 @@ public class GpsHandleServer {
 	 * 4.设备断开，销毁通道
 	 */
 	public void openNettyServer(int port) {
+		SystemUtil.NETTYSESSIONMAP=new ConcurrentHashMap<>();
+		new ErrorMsg();
+		new ColorUtil();
 		//创建通道保存集合
 		ContextMap=new ConcurrentHashMap<>();
 		//开启数据存储线程
@@ -87,40 +91,36 @@ public class GpsHandleServer {
 										//数据处理
 										if (hexStr.startsWith("7E 02 00")) {//定位信息
 											NgpsData gpsDescData = httpData2(hexStr);
-											if (gpsDescData != null) {
-												//加上设备状态
-												gpsDescData.setStauts(ContextMap.get(ctx).getStatus());
-												gpsDescData.setEquipCard(ContextMap.get(ctx).getCard());
-
-												//存储gps日志
-												saveMsgToLog(ctx, hexStr);
-
-												//发送gps数据
-												if(!"未定位".equals(gpsDescData.getErrorStatus())) {
-													gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
-													WSgpsData wSgpsData = new WSgpsData(gpsDescData);
-													GPSDATALIST.add(gpsDescData);
-													WSGPSLIST.add(wSgpsData);
-													NettyWebSocketController.sendMessage2(wSgpsData);
-													//在SaveData.saveRedis()方法中将数据存储到redis;
-													//SystemUtil.gpsDatalist.add(gpsDescData);
-												}else{
-													gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
-												}
+											//存储gps日志
+											saveMsgToLog(ctx, hexStr);
+											if (null!=gpsDescData) {
 												ContextMap.get(ctx).setTaskId(gpsDescData.getTaskId());
-												if (ContextMap.get(ctx)==null){//保存电话号码 通过电话号码判断定位信息发送到哪个任务
-													GpsStatusData equip=new GpsStatusData();
+												System.out.println(gpsDescData);
+												if (ContextMap.get(ctx) == null) {//保存电话号码 通过电话号码判断定位信息发送到哪个任务
+													GpsStatusData equip = new GpsStatusData();
 													equip.setNum(gpsDescData.getEquip());
-													ContextMap.put(ctx,equip);
-												}else {
+													ContextMap.put(ctx, equip);
+												} else {
 													if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {
-													}else{
+													} else {
 														//Equip equip=new Equip();
 														ContextMap.get(ctx).setNum(gpsDescData.getEquip());
 													}
 												}
+												if (!"-1".equals(gpsDescData.getErrorStatus())) {
+													//加上设备状态
+													gpsDescData.setStauts(ContextMap.get(ctx).getStatus());
+													gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
+													//数据保存
+													WSgpsData wSgpsData = new WSgpsData(gpsDescData);
+													GPSDATALIST.add(gpsDescData);
+													WSGPSLIST.add(wSgpsData);
+													//发送gps数据
+													NettyWebSocketController.sendMessage2(wSgpsData);
+													//在SaveData.saveRedis()方法中将数据存储到redis;
+													//SystemUtil.gpsDatalist.add(gpsDescData);
+												}
 											}
-
 										}else if(hexStr.startsWith("A5 14")){//脚扣反馈   //通过设备ID发送到设备命令
 											//保存设备命令日志
 											saveOrderToLog(ctx, hexStr);
@@ -128,9 +128,17 @@ public class GpsHandleServer {
 											String[]str=hexStr.split(" ");
 											String card=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
 											String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
-
+											if (ContextMap.get(ctx)==null){//保存设备编号
+												GpsStatusData equip=new GpsStatusData();
+												equip.setCard(card);
+												ContextMap.put(ctx,equip);
+											}else {
+												if (card.equals(ContextMap.get(ctx).getCard())) {
+												}else{
+													ContextMap.get(ctx).setCard(card);
+												}
+											}
 											//读取命令反馈
-											//System.out.println(num+user+str[10]+str[11]+"::"+retuenPowerOrder(str[12]));
 											ORDERMAP.put(card+user+str[10]+str[11],retuenPowerOrder(str[12]));
 											if("12".equals(str[10])){//解析状态
 												StringBuffer status=new StringBuffer();
@@ -180,16 +188,7 @@ public class GpsHandleServer {
 												}
 												ContextMap.get(ctx).setUptime(Calendar.getInstance());
 											}
-											if (ContextMap.get(ctx)==null){//保存设备编号
-												GpsStatusData equip=new GpsStatusData();
-												equip.setCard(card);
-												ContextMap.put(ctx,equip);
-											}else {
-												if (card.equals(ContextMap.get(ctx).getCard())) {
-												}else{
-													ContextMap.get(ctx).setCard(card);
-												}
-											}
+
 											if (ContextMap.get(ctx).getType()==0) {//初始化布防设置时间
 												FirConn(ctx,card);
 												ContextMap.get(ctx).setType(1);
