@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.along.gps.util.GpsServer.ContextMap;
-import static com.along.gps.util.GpsServer.getcardByNum;
+
 import static com.along.gps.util.Order.HexadecimalUtil.hexStringToByteArray;
 import static com.along.gps.util.Order.OrderUtil.send;
 import static com.along.gps.util.Order.OrderUtil.sendStatus;

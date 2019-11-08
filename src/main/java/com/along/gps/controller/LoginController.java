@@ -8,9 +8,11 @@ package com.along.gps.controller;
 
 import com.along.gps.entity.EquipS;
 import com.along.gps.entity.GpsDescData;
+import com.along.gps.entity.WSgpsData;
 import com.along.gps.service.GpsService;
 import com.along.gps.util.FileUtil;
-import com.along.gps.util.GpsServer;
+
+import com.along.gps.util.Gps.GpsHandleServer;
 import com.along.gps.util.SystemUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,9 +30,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.along.gps.controller.WebSocketController.sendMessage2;
-import static com.along.gps.util.GpsServer.*;
+import static com.along.gps.controller.NettyWebSocketController.sendMessage2;
+import static com.along.gps.util.Gps.GpsHandleServer.*;
 import static com.along.gps.util.Order.EquipOrder.sendOrder;
+import static com.along.gps.util.SystemUtil.ContextMap;
 import static com.along.gps.util.SystemUtil.ORDERMAP;
 
 
@@ -78,7 +81,7 @@ public class LoginController {
                 resmap.put("data",list);
             //    resmap.put("data",map);
             }else {
-                GpsServer.sendPower(card, userId);
+                GpsHandleServer.sendPower(card, userId);
             }
         }
 
@@ -180,7 +183,7 @@ public class LoginController {
      * @return
      */
     @RequestMapping(value = "sendgps")
-    public String sendgps(HttpServletRequest request,@RequestBody GpsDescData gdd) {
+    public String sendgps(HttpServletRequest request,@RequestBody WSgpsData gdd) {
         sendMessage2( gdd);
         return "ok";
     }

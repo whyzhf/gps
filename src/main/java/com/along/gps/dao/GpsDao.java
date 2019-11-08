@@ -3,6 +3,7 @@ package com.along.gps.dao;
 import com.along.gps.config.CacheExpire;
 import com.along.gps.entity.OutboundRoadlog;
 
+import com.along.gps.entity.TaskArea;
 import com.along.gps.entity.TaskEquip;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Param;
@@ -52,6 +53,12 @@ public interface GpsDao {
 	@Select(" SELECT  id FROM outbound_equipment where card=#{id}")
 	Integer getEquipId(@Param("id") String id);
 
+	@Cacheable(value = "getEquipCard",key="#p0" ,unless="#result == null")
+	@CacheExpire(expire = 60*60)
+	@Select(" SELECT card  FROM outbound_equipment where numb=#{id}")
+	String getEquipCard(@Param("id") String id);
 
+	@Select(" SELECT DISTINCT id from outbound_task where status=3 and area_id=${areaId}")
+	List<Integer> getTaskArea(@Param("areaId") String areaId);
 
 }

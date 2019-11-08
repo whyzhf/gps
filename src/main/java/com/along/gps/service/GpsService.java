@@ -27,7 +27,11 @@ public interface GpsService {
 	Integer getTaskByEquipId(String card);
 	Integer getEquipId( String id);
 
+	String getEquipCard( String id);
+
 /*	@Cacheable(value = "getfile",key="#p0",unless="#result == null",condition = "#result != null && #result.size()<100000")
 	@CacheExpire(expire = 60*5)*/
 	List<HistData> getfile(String taskId);
+
+	List<Integer> getTaskArea(String areaId);
 }

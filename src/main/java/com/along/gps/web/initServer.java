@@ -1,7 +1,8 @@
 package com.along.gps.web;
 
 
-import com.along.gps.util.GpsServer;
+//import com.along.gps.util.GpsServer;
+import com.along.gps.util.Gps.GpsHandleServer;
 import com.along.gps.util.Order.ErrorMsg;
 import com.along.gps.util.SystemUtil;
 import org.springframework.boot.CommandLineRunner;
@@ -18,8 +19,10 @@ public class initServer implements CommandLineRunner {
 		new Thread(){
 			public void run() {
 				System.out.println("开始启动netty...");
-				new GpsServer().openNettyServer(8899);
-				SystemUtil.sessionmap=new ConcurrentHashMap<>();
+		//		new GpsServer().openNettyServer(8899);
+				new GpsHandleServer().openNettyServer(8899);
+		//		SystemUtil.sessionmap=new ConcurrentHashMap<>();
+				SystemUtil.NETTYSESSIONMAP=new ConcurrentHashMap<>();
 				new ErrorMsg();
 			}
 		}.start();

@@ -55,6 +55,11 @@ public class GpsServiceImpl implements GpsService {
 	}
 
 	@Override
+	public String getEquipCard(String id) {
+		return gpsDao.getEquipCard(id);
+	}
+
+	@Override
 	public 	List<HistData> getfile(String taskId) {
 		try {
 		//	System.out.println("1111111");
@@ -63,6 +68,11 @@ public class GpsServiceImpl implements GpsService {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@Override
+	public List<Integer> getTaskArea(String areaId) {
+		return gpsDao.getTaskArea(areaId);
 	}
 
 

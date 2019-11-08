@@ -200,9 +200,10 @@ public class ConvertData {
 				}
 			}
 		}catch(Exception ex){
-			
+
 		   ex.printStackTrace();
 		   LogUtil.writeLog(data);
+			return "gps数据异常";
 		}
 		// System.out.println(sb.toString());
 		return sb.toString();
