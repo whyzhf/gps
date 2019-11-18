@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.along.gps.entity.*;
 import com.along.gps.service.GpsService;
 import com.along.gps.util.*;
+import com.google.common.collect.Lists;
 import io.netty.channel.ChannelHandlerContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -69,6 +70,7 @@ public class HandleData {
 			nd.setErrorStatus("-1");
 			return nd;
 		}*/
+		//nd.setUptime(getNowData("yyyy-MM-dd HH:mm:ss"));
 		nd.setUptime(arr[9]);
 		nd.setDirection(Short.parseShort(arr[8]));
 		nd.setLat(arr[1]);
@@ -81,6 +83,7 @@ public class HandleData {
 		nd.setSpeed(Short.parseShort(arr[7]));
 
 		//通过电话号码在数据库查找card
+
 		String equipCard= handleData.gpsService.getEquipCard(arr[0]);
 		if(equipCard!=null && !equipCard.isEmpty()){
 		}else{//没找到就通过保存通道的map查找
@@ -133,12 +136,12 @@ public class HandleData {
 	//保存到redis
 	public static JedisUtil jutil = JedisUtil.getInstance();// jedis工具对象
 	public static void saveRedis(){
-			GpsDescData poll = SystemUtil.gpsDatalist.poll();
-			//写入文件夹
+			WSgpsData poll = WSGPSLIST.poll();
+		    //写入文件夹
 			saveDataToLog(poll);
 			//存入缓存
-			String key=poll.getOutboundRoadlog().getTaskId()+"";
-			double score=StringToLong(poll.getTime(),"yyyy-MM-dd HH:mm:ss").doubleValue();
+			String key=poll.getTaskId()+"_"+poll.getEquipCard();
+			double score=StringToLong(poll.getUptime(),"yyyy-MM-dd HH:mm:ss").doubleValue();
 			String jsonString = JSONObject.toJSONString(poll);
 			jutil.SORTSET.zadd(key,score, jsonString);
 			jutil.expire(key, 60 * 60 * 24 * 7);
@@ -146,18 +149,39 @@ public class HandleData {
 	}
 
 	//保存到数据库
-	public static void saveDataBySql(){
+	/*public static void saveDataBySql(){
 		List<NgpsData> list=new ArrayList<>();
-		long start = System.currentTimeMillis();
+		long start=	 System.currentTimeMillis();
 		while (!GPSDATALIST.isEmpty()) {
 			list.add(GPSDATALIST.poll());
 			//数据大于500条，或者时间大于5s,保存数据
-			if (list.size()>500||System.currentTimeMillis()>start+5000L) {
+			System.out.println(getNowData("yyyy-MM-dd HH:mm:ss")+"  ##  "+list.size());
+			if (list.size()>500) {
 				handleData.gpsService.saveGpsLogData(list);
+				list = new ArrayList<>();
+			}else if ( System.currentTimeMillis()-start>5000){
+				handleData.gpsService.saveGpsLogData(list);
+				start=	 System.currentTimeMillis();
 				list = new ArrayList<>();
 			}
 
 		}
+	}*/
+	public static void saveDataBySql(){
+		List<NgpsData> list=new ArrayList<>();
+		while (!GPSDATALIST.isEmpty()) {
+			list.add(GPSDATALIST.poll());
+
+		}
+		if (list.size()<1000) {//数据小于1000条保存数据
+			handleData.gpsService.saveGpsLogData(list);
+		}else {//数据大于1000条，分批保存保存数据
+			List<List<NgpsData>> parts = Lists.partition(list, 1000);
+			parts.stream().forEach(e->{
+				handleData.gpsService.saveGpsLogData(e);
+			});
+		}
+
 	}
 
 
@@ -244,11 +268,11 @@ public class HandleData {
 	 *
 	 * @param msg
 	 */
-	public static   void saveDataToLog( GpsDescData msg) {
+	public static   void saveDataToLog( WSgpsData msg) {
 		Writer w = null;
 		BufferedWriter bw = null;
 		try {
-			String FileName = msg.getOutboundRoadlog().getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
+			String FileName = msg.getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
 			File dir = new File(SysUtil.WEB_DATA_LOCATION);
 			if (!dir.exists()) {
 				dir.mkdirs();

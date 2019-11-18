@@ -23,15 +23,15 @@ public class SqlProvider extends SQL {
        List<NgpsData> dataList = (List<NgpsData>) map.get("list");
         StringBuilder sb = new StringBuilder();
         sb.append(" INSERT INTO outbound_gpslog" +
-                "  ( taskId, equip, equipCard, police, prisoner, stauts, errorStatus, uptime, `type`, longitude, latitude, lot, lat, speed, direction, color)");
+                "  ( taskId, equip, equipCard, police, prisoner, stauts, errorStatus, uptime, longitude, latitude, lot, lat, speed, direction, color) VALUES ");
         MessageFormat mf = new MessageFormat(
                 "( #'{'list[{0}].taskId}, #'{'list[{0}].equip}, #'{'list[{0}].equipCard}, #'{'list[{0}].police}," +
                         "#'{'list[{0}].prisoner}, #'{'list[{0}].stauts}, #'{'list[{0}].errorStatus}, #'{'list[{0}].uptime}," +
-                        " #'{'list[{0}].type}, #'{'list[{0}].longitude}, #'{'list[{0}].latitude}, #'{'list[{0}].lot}, #'{'list[{0}].lat}" +
+                        " #'{'list[{0}].longitude}, #'{'list[{0}].latitude}, #'{'list[{0}].lot}, #'{'list[{0}].lat}" +
                         ", #'{'list[{0}].speed}, #'{'list[{0}].direction}, #'{'list[{0}].color} )"
         );
         long start = System.currentTimeMillis();
-        for (int i = 0; i < GPSDATALIST.size(); i++) {
+        for (int i = 0; i < dataList.size(); i++) {
             sb.append(mf.format(new Object[] {i}));
             if (i < dataList.size() - 1)
                 sb.append(",");

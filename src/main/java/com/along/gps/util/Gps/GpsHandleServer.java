@@ -88,6 +88,7 @@ public class GpsHandleServer {
 										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){
 											selEquipStatus(ctx,ContextMap.get(ctx).getCard());
 										}
+										//System.out.println(hexStr);
 										//数据处理
 										if (hexStr.startsWith("7E 02 00")) {//定位信息
 											NgpsData gpsDescData = httpData2(hexStr);
@@ -142,7 +143,7 @@ public class GpsHandleServer {
 											ORDERMAP.put(card+user+str[10]+str[11],retuenPowerOrder(str[12]));
 											if("12".equals(str[10])){//解析状态
 												StringBuffer status=new StringBuffer();
-												status.append(get10HexNum(str[11])).append("%(电量),");
+												status.append(get10HexNum(str[11])).append("%(电量)");
 												char[] sta=hex10Byte(Integer.parseInt(str[12],16));
 												StringBuffer error=new StringBuffer();
 

@@ -32,7 +32,7 @@ public interface GpsDao {
 	@Select(" SELECT  group_concat( CONCAT_WS(':',p.name,p.card),' ')" +
 			" FROM outbound_task_police_rel  r" +
 			" LEFT JOIN outbound_police p on r.police_id=p.id" +
-			" where r.task_id=#{id} and p.name IS NOT NULL")
+			" where r.task_id=#{id} and p.name IS NOT NULL  limit 5 ")
 	String getPolice(@Param("id") String id);
 
 	@Cacheable(value = "getEquipByTaskId",key="#p0" ,unless="#result == null")

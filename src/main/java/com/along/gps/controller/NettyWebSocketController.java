@@ -1,5 +1,6 @@
 package com.along.gps.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.along.gps.entity.GpsDescData;
 import com.along.gps.entity.WSgpsData;
 import com.along.gps.service.GpsService;
@@ -103,6 +104,7 @@ public class NettyWebSocketController {
 	 * 群发
 	 */
 	public static synchronized void sendMessage2(WSgpsData wsData) {
+		//获取session
 		Set<Session> sessionSet = SystemUtil.NETTYSESSIONMAP.get(wsData.getTaskId() + "");
 		if (sessionSet!=null) {
 			Iterator<Session> it = sessionSet.iterator();

@@ -5,18 +5,20 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.along.gps.util.SaveData.*;
+
+import static com.along.gps.util.Gps.HandleData.*;
 import static com.along.gps.util.SystemUtil.*;
 
 //用于处理数据存储，日志记录线程管理
 public class ThreadUtil {
 	public static void init(){
-		//数据存储
+		//数据存储redis
 		redisThread();
 		//脚扣命令日志存储
 		orderLogThread();
 		//gps命令日志存储
 		gpsLogThread();
+		//存入数据库
 		saveThread();
 	}
 	/**
@@ -33,6 +35,7 @@ public class ThreadUtil {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+					System.out.println("1111111111111");
 					try {
 						while (!GPSDATALIST.isEmpty()) {
 							saveDataBySql();
@@ -63,7 +66,7 @@ public class ThreadUtil {
 						e.printStackTrace();
 					}
 					try {
-						while (!SystemUtil.gpsDatalist.isEmpty()) {
+						while (!SystemUtil.WSGPSLIST.isEmpty()) {
 							saveRedis();
 						}
 					} catch (Exception e) {
