@@ -3,11 +3,11 @@ package com.along.gps.util;
 public class SysUtil {
 	public static String LOG_LOCATION="E:\\mypro";
 
-	//public static String WEB_LOG_LOCATION="/usr/tomcat/tomcat8/gps/logs";
-	//public static String WEB_DATA_LOCATION="/usr/tomcat/tomcat8/gps/data";
-	public static String LOCAL_DATA_LOCATION="E:\\gpsData";
+	public static String WEB_LOG_LOCATION="/usr/tomcat/tomcat8/gps/logs";
+	public static String WEB_DATA_LOCATION="/usr/tomcat/tomcat8/gps/data";
+	/*public static String LOCAL_DATA_LOCATION="E:\\gpsData";
 	public static String WEB_LOG_LOCATION=LOCAL_DATA_LOCATION+"\\logs";
-	public static String WEB_DATA_LOCATION=LOCAL_DATA_LOCATION+"\\data";
+	public static String WEB_DATA_LOCATION=LOCAL_DATA_LOCATION+"\\data";*/
 
 
 	public static String CLIENT_URL="ws://localhost/websocket/";

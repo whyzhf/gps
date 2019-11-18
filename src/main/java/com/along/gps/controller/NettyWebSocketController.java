@@ -24,6 +24,7 @@ import java.io.*;
 import java.util.*;
 
 
+import static com.along.gps.util.Order.GeneralUtils.getJsonStr;
 import static com.along.gps.util.SystemUtil.sessionmap;
 
 @ServerEndpoint(prefix = "netty-websocket" )
@@ -70,9 +71,9 @@ public class NettyWebSocketController {
 			set.add(session);
 			SystemUtil.NETTYSESSIONMAP.put(taskId, set);
 		}
-		if ("549".equals(taskId)&&"-1".equals(areaId)) {
+		/*if ("549".equals(taskId)&&"-1".equals(areaId)) {
 			sendMessageDemo( session);
-		}
+		}*/
 	}
 
 	@OnClose
@@ -111,9 +112,9 @@ public class NettyWebSocketController {
 			while (it.hasNext()) {
 				Session session = it.next();
 				if (session != null && session.isOpen()) {
-					Map<String, WSgpsData> data = new HashMap<>();
-					data.put("data", wsData);
-					session.sendText(String.valueOf(data));
+				//	Map<String, WSgpsData> data = new HashMap<>();
+				//	data.put("data",wsData);
+					session.sendText("{\"data\":"+getJsonStr(wsData)+"}");
 				}else if(session != null && !session.isOpen()){
 					it.remove();
 				}
