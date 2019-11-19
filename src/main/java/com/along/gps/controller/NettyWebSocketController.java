@@ -24,6 +24,7 @@ import java.io.*;
 import java.util.*;
 
 
+import static com.along.gps.util.Gps.ClientTest.initServer;
 import static com.along.gps.util.Order.GeneralUtils.getJsonStr;
 import static com.along.gps.util.SystemUtil.sessionmap;
 

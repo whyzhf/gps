@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.along.gps.controller.NettyWebSocketController.sendMessage2;
+import static com.along.gps.util.Gps.ClientTest.initServer;
 import static com.along.gps.util.Gps.GpsHandleServer.*;
 import static com.along.gps.util.Order.EquipOrder.sendOrder;
 import static com.along.gps.util.SystemUtil.ContextMap;
@@ -182,4 +183,11 @@ public class LoginController {
         SystemUtil.FLAG=flag;
         return SystemUtil.FLAG==0?"已开启坐标转换":"已关闭坐标转换";
     }
+
+    @RequestMapping(value = "initgpsServer")
+    public String initgpsServer(HttpServletRequest request) {
+        initServer(8899);
+        return "已开启gps发送";
+    }
+
 }
