@@ -86,6 +86,7 @@ public class HandleData {
 
 		String equipCard= handleData.gpsService.getEquipCard(arr[0]);
 		if(equipCard!=null && !equipCard.isEmpty()){
+
 		}else{//没找到就通过保存通道的map查找
 			equipCard=getcardByNum(ContextMap,arr[0]);
 			if (!"".equals(equipCard)){//找到后存入数据库
@@ -97,6 +98,7 @@ public class HandleData {
 		}
 		nd.setEquipCard(equipCard);
 		nd.setTaskId(handleData.gpsService.getTaskByEquipId(equipCard));
+		nd.setTaskName(handleData.gpsService.getTaskName(nd.getTaskId()+""));
 		nd.setPolice(handleData.gpsService.getPolice(nd.getTaskId()+""));
 		nd.setPrisoner(handleData.gpsService.getPrisoner(equipCard));
 		nd.setColor(equipCard);

@@ -101,7 +101,7 @@ public static void initServer(int port){
 							e.printStackTrace();
 						}
 
-						File file = new File(WEB_DATA_LOCATION+"\\demo.txt");
+						File file = new File(WEB_DATA_LOCATION+"/demo.txt");
 						Reader in = new FileReader(file);
 						BufferedReader br = new BufferedReader(in);
 						while(br.ready()) {

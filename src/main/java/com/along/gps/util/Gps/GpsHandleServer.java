@@ -96,7 +96,7 @@ public class GpsHandleServer {
 											saveMsgToLog(ctx, hexStr);
 											if (null!=gpsDescData) {
 												ContextMap.get(ctx).setTaskId(gpsDescData.getTaskId());
-												System.out.println(gpsDescData);
+											//	System.out.println(gpsDescData);
 												if (ContextMap.get(ctx) == null) {//保存电话号码 通过电话号码判断定位信息发送到哪个任务
 													GpsStatusData equip = new GpsStatusData();
 													equip.setNum(gpsDescData.getEquip());

@@ -38,5 +38,8 @@ public interface GpsService {
 
 	List<Integer> getTaskArea(String areaId);
 
+	String getTaskName(String id);
+
 	int addNumb(String numb, String card);
+	int deleteGpslog();
 }

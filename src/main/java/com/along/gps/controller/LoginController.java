@@ -13,12 +13,14 @@ import com.along.gps.service.GpsService;
 import com.along.gps.util.FileUtil;
 
 import com.along.gps.util.Gps.GpsHandleServer;
+import com.along.gps.util.JedisUtil;
 import com.along.gps.util.SystemUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
+import redis.clients.jedis.Jedis;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -186,6 +188,14 @@ public class LoginController {
 
     @RequestMapping(value = "initgpsServer")
     public String initgpsServer(HttpServletRequest request) {
+        JedisUtil jedisUtil = JedisUtil.getInstance();
+        Jedis jedis = jedisUtil.getJedis();
+        Set<String> set = jedis.keys("548*");
+        for (String s : set) {
+            jedis.zremrangeByRank(s,0,-1);
+        }
+
+        gpsService.deleteGpslog();
         initServer(8899);
         return "已开启gps发送";
     }

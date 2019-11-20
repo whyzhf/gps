@@ -7,6 +7,7 @@ import redis.clients.jedis.SortingParams;
 import redis.clients.jedis.util.SafeEncoder;
 
 
+import java.io.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,15 +49,47 @@ public class JedisUtil {
 	private JedisUtil() {
       init();
 	}
+	public static void write( Set<String> set){
+		Writer w = null;
+		BufferedWriter bw = null;
+		long startTime = System.currentTimeMillis();
+		try {
+			// 写入文本
+			File f = new File("C:\\Users\\ALONG\\Desktop\\548_85703645598.txt");
 
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			w = new FileWriter(f, true);
+			bw = new BufferedWriter(w);
+			for (String key : set) {
+				bw.write(key+" \r\n");
+			}
+			long endTime = System.currentTimeMillis();
+			System.out.println("运行时间:" + (endTime - startTime) + "ms");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				bw.close();
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+	}
 	public static void main(String[] args) {
 
 		JedisUtil jedisUtil = JedisUtil.getInstance();
-		Set<String> set = jedisUtil.getJedis().keys("54*");
-		for (String key : set) {
+	//	Set<String> set = jedisUtil.getJedis().zrange("548_85703645598",0,-1);
+		System.out.println(jedisUtil.getJedis().zremrangeByRank("548_114",0,-1));
+		/*for (String key : set) {
 			System.out.println(key);
-		}
-
+		}*/
+	//	write(set);
 		/*JedisUtil.Strings strings = jedisUtil.new Strings();
 		strings.set("nnn", "nnnn");
 		System.out.println("-----" + strings.get("nnn"));

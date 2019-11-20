@@ -6,10 +6,7 @@ import com.along.gps.entity.OutboundRoadlog;
 
 import com.along.gps.entity.TaskArea;
 import com.along.gps.entity.TaskEquip;
-import org.apache.ibatis.annotations.InsertProvider;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
@@ -65,8 +62,15 @@ public interface GpsDao {
 	@Select(" SELECT DISTINCT id from outbound_task where status=3 and area_id=${areaId}")
 	List<Integer> getTaskArea(@Param("areaId") String areaId);
 
+	@Cacheable(value = "getTaskName",key="#p0" ,unless="#result == null")
+	@CacheExpire(expire = 60*60*3)
+	@Select(" SELECT  name from outbound_task where id=${id}")
+	String getTaskName(@Param("id") String id);
+
 	@Update("UPDATE outbound_equipment " +
 			"SET numb=#{numb} WHERE card=#{card}")
 	int addNumb(@Param("numb") String numb,@Param("card") String card);
 
+	@Delete("DELETE FROM outbound_gpslog")
+	int deleteGpslog();
 }

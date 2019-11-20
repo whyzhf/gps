@@ -29,7 +29,7 @@ public class WebConfig  implements WebMvcConfigurer {
      * @return org.springframework.web.socket.server.standard.ServerEndpointExporter
      * @description 配置ServerEndpointExporter，配置后会自动注册所有“@ServerEndpoint”注解声明的Websocket Endpoint
      */
-   /* @Bean
+  /*  @Bean
     public ServerEndpointExporter serverEndpointExporter() {
 	    return new ServerEndpointExporter();
     }*/

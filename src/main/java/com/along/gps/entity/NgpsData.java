@@ -14,6 +14,7 @@ import static com.along.gps.util.DataUtil.strToSqlDate;
  */
 public class NgpsData {
 	private Integer taskId;
+	private String taskName;
 	private String police;//干警信息
 	private String prisoner;//犯人信息
 	private String equip;//设备电话号
@@ -33,6 +34,7 @@ public class NgpsData {
 	public String toString() {
 		return "NgpsData{" +
 				"taskId=" + taskId +
+				", taskName='" + taskName + '\'' +
 				", police='" + police + '\'' +
 				", prisoner='" + prisoner + '\'' +
 				", equip='" + equip + '\'' +
@@ -50,6 +52,13 @@ public class NgpsData {
 				'}';
 	}
 
+	public String getTaskName() {
+		return taskName;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
+	}
 	public String getColor() {
 		return color;
 	}

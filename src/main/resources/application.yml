@@ -81,5 +81,5 @@ pagehelper:
 netty-websocket:
   host: 0.0.0.0
   path: /gps/WebSocket
-  port: 80
+  port: 8099
 

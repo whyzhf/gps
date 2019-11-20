@@ -82,8 +82,18 @@ public class GpsServiceImpl implements GpsService {
 	}
 
 	@Override
+	public String getTaskName(String id) {
+		return gpsDao.getTaskName(id);
+	}
+
+	@Override
 	public int addNumb(String numb, String card) {
 		return gpsDao.addNumb(numb,card);
+	}
+
+	@Override
+	public int deleteGpslog() {
+		return gpsDao.deleteGpslog();
 	}
 
 

@@ -13,6 +13,7 @@ import static com.along.gps.util.DataUtil.strToSqlDate;
  */
 public class WSgpsData {
 	private Integer taskId;
+	private String taskName;
 	private String police;//干警信息
 	private String prisoner;//犯人信息
 	private String equip;//设备号
@@ -39,12 +40,21 @@ public class WSgpsData {
 		this.latitude = ngpsData.getLatitude();
 		this.uptime =ngpsData.getUptime();
 		this.color=ngpsData.getColor();
+		this.taskName=ngpsData.getTaskName();
 		/*if(this.equipCard.length()>2) {
 			int i = Integer.parseInt(this.equipCard.substring(this.equipCard.length() - 1, this.equipCard.length())) % 21;
 			this.color = ColorUtil.COLORMAP.get(i);
 		}else{
 			this.color = ColorUtil.COLORMAP.get(Integer.parseInt(this.equipCard)%21);
 		}*/
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+
+	public void setTaskName(String taskName) {
+		this.taskName = taskName;
 	}
 
 	public String getColor() {
