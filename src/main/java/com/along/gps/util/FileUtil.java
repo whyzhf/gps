@@ -17,7 +17,9 @@ import static com.along.gps.util.MyThread.asyncGet;
 public class FileUtil {
 	public static void main(String[] args) throws Exception {
 		//System.out.println("548".split("-")[0]);
-		new FileUtil().readFileReturnMap("E:\\gpsData\\demo.txt");
+		//new FileUtil().readFileReturnMap("E:\\gpsData\\20-json.txt");
+		System.out.println(JSONObject.toJSONString(getData("E:\\gpsData\\548-json.txt")));
+
 	}
 
 
@@ -31,6 +33,7 @@ public class FileUtil {
 			return null;
 		}
 		String url=path+"/"+fileName;
+
 		try {
 			//return readFile(url);
 			return readFileReturnMap(url);
@@ -53,8 +56,8 @@ public class FileUtil {
 	public static	List<HistData>  readFileReturnMap(String path) throws IOException {
 		Map<String,List<JSONObject>> map=new HashMap<>();
 		List<JSONObject> list=null;
-	//	int i=0;
-	//	long start = System.currentTimeMillis();
+		int i=0;
+		long start = System.currentTimeMillis();
 		File file = new File(path );
 		String equip="";
 	//	System.out.println("start.....");
@@ -76,7 +79,7 @@ public class FileUtil {
 				list.add(jsonObject);
 				map.put(jsonObject.get("equip")+"",list);
 			}
-		//	i++;
+			i++;
 			//res.add(jsonObject.toString());
 		}
 		List<HistData> resList=new ArrayList<>();
@@ -88,8 +91,8 @@ public class FileUtil {
 		unicodeReader.close();
 		fis.close();
 		br.close();
-	//	long end = System.currentTimeMillis();
-	//	System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
+		long end = System.currentTimeMillis();
+		System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
 
 		return resList;
 	}

@@ -3,11 +3,13 @@ package com.along.gps.util.Gps;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.along.gps.util.DataUtil.StringToLong;
+
 public class ColorUtil {
 	public static Map<Integer,String> COLORMAP = new ConcurrentHashMap<>();
 
 	public static void main(String[] args) {
-		new  ColorUtil();
+		/*new  ColorUtil();
 		String equipCard="114",color="";
 		if(equipCard.length()>2) {
 			int i = Integer.parseInt(equipCard.substring(equipCard.length() - 1, equipCard.length())) % 21;
@@ -15,7 +17,9 @@ public class ColorUtil {
 		}else{
 			color = ColorUtil.COLORMAP.get(Integer.parseInt(equipCard)%21);
 		}
-		System.out.println(color);
+		System.out.println(color);*/
+		System.out.println((StringToLong("2019-11-21 18:03:53", "yyyy-MM-dd HH:mm:ss")));
+		System.out.println((StringToLong("2019-11-21 18:03:53", "yyyy-MM-dd HH:mm:ss") + 1000 * 60 * 5));
 	}
 	public ColorUtil() {
 		COLORMAP.put(1,"#FFDAB9");//桃色

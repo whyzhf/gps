@@ -66,10 +66,7 @@ public class HandleData {
 
 		NgpsData nd = new NgpsData();
 		nd.setEquip(arr[0]);//电话号码
-		/*if ("未定位".equals(arr[3])){
-			nd.setErrorStatus("-1");
-			return nd;
-		}*/
+
 		//nd.setUptime(getNowData("yyyy-MM-dd HH:mm:ss"));
 		nd.setUptime(arr[9]);
 		nd.setDirection(Short.parseShort(arr[8]));
@@ -103,6 +100,12 @@ public class HandleData {
 		nd.setPrisoner(handleData.gpsService.getPrisoner(equipCard));
 		nd.setColor(equipCard);
 		//System.out.println(nd);
+		//如果命令时间+5min 依然小于当前时间，则此条不算数
+		boolean b = StringToLong(arr[9], "yyyy-MM-dd HH:mm:ss") + 1000 * 60 * 5 < System.currentTimeMillis();
+		if ("未定位".equals(arr[3]) || b){
+			nd.setErrorStatus("-1");
+			return nd;
+		}
 		return nd;
 	}
 
