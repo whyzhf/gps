@@ -194,9 +194,9 @@ public class LoginController {
         for (String s : set) {
             jedis.zremrangeByRank(s,0,-1);
         }
-
         gpsService.deleteGpslog();
         initServer(8899);
+        System.out.println("已开启gps发送");
         return "已开启gps发送";
     }
 

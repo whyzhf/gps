@@ -27,34 +27,30 @@ import static com.along.gps.util.SysUtil.WEB_DATA_LOCATION;
 public class ClientTest {
 
 	public static void main(String args[]) {
-
-		initServer(8899);
-
+		for (int i = 0; i <2; i++) {
+			initServer(8899);
+		}
 	}
 public static void initServer(int port){
-	for (int i = 0; i <1; i++) {
-		new Thread() {
-			@Override
-			public void run() {
-				ClientTest client = new ClientTest();
-				try {
-					client.initClient(port);
-					client.lister();
-					Thread.sleep(10);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+	//for (int i = 0; i <2; i++) {
 
-
-
+		if(flagbb==0) {
+			flagbb=1;
+			ClientTest client = new ClientTest();
+			try {
+				client.initClient(port);
+				client.lister();
+				Thread.sleep(10);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-		}.start();
-
-	}
+		}
+	//}
 }
 	Selector sel;
-
-	public void initClient(int port) throws IOException {
+private static int flagbb=0;
+	public synchronized void  initClient(int port) throws IOException {
+		System.out.println(sel);
 		SocketChannel sc = SocketChannel.open();
 		sc.configureBlocking(false);
 		sel = Selector.open();
@@ -71,6 +67,7 @@ public static void initServer(int port){
 			// 监听key
 			Iterator<SelectionKey> keys = sel.selectedKeys().iterator();
 			while (keys.hasNext()) {
+
 				SelectionKey key = keys.next();
 				// 删除已选key，防止重复处理
 				keys.remove();
@@ -119,6 +116,7 @@ public static void initServer(int port){
 								}
 							}
 						}
+						flagbb=0;
 						in.close();
 						br.close();
 
@@ -131,8 +129,8 @@ public static void initServer(int port){
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
-						}
-*/
+						}*/
+
 
 					}
 
