@@ -14,12 +14,20 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.FixedLengthFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.along.gps.util.Order.EquipOrder.*;
+import static com.along.gps.util.Order.EquipUtil.getPower;
+import static com.along.gps.util.Order.EquipUtil.stopPowerOrder;
 import static com.along.gps.util.Order.ErrorMsg.ERRORMAP;
 import static com.along.gps.util.Order.HexadecimalUtil.*;
 import static com.along.gps.util.Order.OrderUtil.retuenPowerOrder;
@@ -80,6 +88,7 @@ public class GpsHandleServer {
 										}
 										// 转义
 										String hexStr = ConvertData.replaceData(sb.toString().trim());
+
 										//初次查询设备状态
 										if( ContextMap.get(ctx).getCard()==null && ContextMap.get(ctx).getType()==0){
 											selEquipStatus(ctx,"00");
@@ -88,119 +97,24 @@ public class GpsHandleServer {
 										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){
 											selEquipStatus(ctx,ContextMap.get(ctx).getCard());
 										}
-										//System.out.println(hexStr);
 										//数据处理
-										if (hexStr.startsWith("7E 02 00")) {//定位信息
-											NgpsData gpsDescData = httpData2(hexStr);
-											//存储gps日志
-											saveMsgToLog(ctx, hexStr);
-											if (null!=gpsDescData) {
-												ContextMap.get(ctx).setTaskId(gpsDescData.getTaskId());
-											//	System.out.println(gpsDescData);
-												if (ContextMap.get(ctx) == null) {//保存电话号码 通过电话号码判断定位信息发送到哪个任务
-													GpsStatusData equip = new GpsStatusData();
-													equip.setNum(gpsDescData.getEquip());
-													ContextMap.put(ctx, equip);
-												} else {
-													if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {
-													} else {
-														//Equip equip=new Equip();
-														ContextMap.get(ctx).setNum(gpsDescData.getEquip());
-													}
-												}
-												if (!"-1".equals(gpsDescData.getErrorStatus())) {
-													//加上设备状态
-													gpsDescData.setStauts(ContextMap.get(ctx).getStatus());
-													gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
-													//数据保存
-													WSgpsData wSgpsData = new WSgpsData(gpsDescData);
-													GPSDATALIST.add(gpsDescData);
-													WSGPSLIST.add(wSgpsData);
-													//发送gps数据
-													NettyWebSocketController.sendMessage2(wSgpsData);
-													//在SaveData.saveRedis()方法中将数据存储到redis;
-													//SystemUtil.gpsDatalist.add(gpsDescData);
-												}
+										if (hexStr.length()<300) {
+											if (hexStr.startsWith("7E 02 00")) {//定位信息
+												gpsMes(ctx, hexStr);
+											} else if (hexStr.startsWith("A5 14")) {//脚扣反馈   //通过设备ID发送到设备命令
+												equipMes(ctx, hexStr);
 											}
-										}else if(hexStr.startsWith("A5 14")){//脚扣反馈   //通过设备ID发送到设备命令
-											//保存设备命令日志
-											saveOrderToLog(ctx, hexStr);
-											//解析出设备ID
-											String[]str=hexStr.split(" ");
-											String card=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
-											String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
-											if (ContextMap.get(ctx)==null){//保存设备编号
-												GpsStatusData equip=new GpsStatusData();
-												equip.setCard(card);
-												ContextMap.put(ctx,equip);
-											}else {
-												if (card.equals(ContextMap.get(ctx).getCard())) {
-												}else{
-													ContextMap.get(ctx).setCard(card);
+										}else{
+											//处理粘包
+											List<String> ord = getOrd(hexStr);
+											ord.forEach(e->{
+											//	System.out.println(e);
+												if (e.startsWith("7E 02 00")) {//定位信息
+													gpsMes(ctx, e);
+												} else if (e.startsWith("A5 14")) {//脚扣反馈   //通过设备ID发送到设备命令
+													equipMes(ctx, e);
 												}
-											}
-											//读取命令反馈
-											ORDERMAP.put(card+user+str[10]+str[11],retuenPowerOrder(str[12]));
-											if("12".equals(str[10])){//解析状态
-												StringBuffer status=new StringBuffer();
-												status.append(get10HexNum(str[11])).append("%(电量)");
-												char[] sta=hex10Byte(Integer.parseInt(str[12],16));
-												StringBuffer error=new StringBuffer();
-
-												if (sta[0]=='1'){
-													status.append(",已布防");
-												}else{
-													status.append(",已撤防");
-													error.append("已撤防 ");
-												}
-												if (sta[1]=='1'){
-													status.append(",被遮挡");
-													error.append("被遮挡 ");
-												}else{
-													status.append(",无遮挡");
-
-												}
-												if (sta[2]=='1'){
-													status.append(",被破拆");
-													error.append("被破拆 ");
-												}else{
-													status.append(",无破拆");
-												}
-												if (sta[3]=='1'){
-													status.append(",主锁打开");
-													error.append("主锁打开 ");
-												}else{
-													status.append(",主锁关闭");
-												}
-												if (sta[4]=='1'){
-													status.append(",电击启动");
-												}else{
-													status.append(",电击关闭");
-													error.append("电击关闭 ");
-												}
-												ContextMap.get(ctx).setStatus(status.toString());
-												/*ContextMap.get(ctx).setDeploy(sta[0]=='1'?"已布防":"已撤防");
-												ContextMap.get(ctx).setClog(sta[1]=='1'?"被遮挡":"无遮挡");
-												ContextMap.get(ctx).setDemolition(sta[2]=='1'?"被破拆":"无破拆");
-												ContextMap.get(ctx).setLock(sta[3]=='1'?"主锁打开":"主锁关闭");
-												ContextMap.get(ctx).setOnAndoff(sta[4]=='1'?"电击启动":"电击关闭");*/
-												if ( (error.toString())!=null && (error.toString()).length()>2) {
-													ContextMap.get(ctx).setErrorStatus(error.toString());
-												}
-												ContextMap.get(ctx).setUptime(Calendar.getInstance());
-											}
-
-											if (ContextMap.get(ctx).getType()==0) {//初始化布防设置时间
-												FirConn(ctx,card);
-												ContextMap.get(ctx).setType(1);
-											}
-											if ("A0".equals(str[10])){//异常反馈
-												saveOrderToLog(ctx, hexStr);
-												//触发设备状态查询
-												selEquipStatus(ctx,card);
-												//发送预警信息
-												NettyWebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),card,ERRORMAP.get(str[11])));
-											}
+											});
 										}
 									} catch (Exception ex) {
 										ex.printStackTrace();
@@ -225,9 +139,10 @@ public class GpsHandleServer {
 								 */
 								@Override
 								public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-									System.out.println(ctx.channel().remoteAddress() + "->tcp断开连接");
 									NettyWebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),ContextMap.get(ctx).getCard(),"gps掉线"));
 									ContextMap.remove(ctx);
+									System.out.println(ctx.channel().remoteAddress() + "->tcp断开连接");
+
 								}
 
 								@Override
@@ -270,7 +185,160 @@ public class GpsHandleServer {
 			workGroup.shutdownGracefully();
 		}
 	}
+	/**
+	 * 处理粘包
+	 * @param hexStr
+	 * @return
+	 */
+	private List<String> getOrd(String hexStr){
+		List<String> list = new ArrayList<String>();
+		//判断是否有“A5 14”
+		int index=0;
+		if ( (index=hexStr.indexOf("A5 14"))>=0){
+			String string = hexStr.substring(index,index+59);
+			list.add(string);
+		}
+		//有多个"7E 02...7E"
+		String regex = "7E 02(.*?)7E";
+		Pattern pattern = Pattern.compile(regex);
+		Matcher m = pattern.matcher(hexStr);
+		while (m.find()) {
+			int i = 1;
+			list.add("7E 02"+m.group(i)+"7E");
+			i++;
+		}
+		return  list;
+	}
 
+	/**
+	 * 处理脚扣设备命令
+	 * @param ctx
+	 * @param hexStr
+	 */
+	private void equipMes(ChannelHandlerContext ctx, String hexStr) {
+		//保存设备命令日志
+		saveOrderToLog(ctx, hexStr);
+		//解析出设备ID
+		String[]str=hexStr.split(" ");
+		String card=get10HexNum(str[2]+str[3]+str[4]+str[5])+"";
+		String user=get10HexNum(str[6]+str[7]+str[8]+str[9])+"";
+		if (ContextMap.get(ctx)==null){//保存设备编号
+			GpsStatusData equip=new GpsStatusData();
+			equip.setCard(card);
+			ContextMap.put(ctx,equip);
+		}else {
+			if (card.equals(ContextMap.get(ctx).getCard())) {
+			}else{
+				ContextMap.get(ctx).setCard(card);
+			}
+		}
+		//读取命令反馈
+		ORDERMAP.put(card+user+str[10],retuenPowerOrder(str[12]));
+		if("12".equals(str[10])){//解析状态
+			StringBuffer status=new StringBuffer();
+			status.append(get10HexNum(str[11])).append("%(电量)");
+			char[] sta=hex10Byte(Integer.parseInt(str[12],16));
+			StringBuffer error=new StringBuffer();
+
+			if (sta[0]=='1'){
+				status.append(",已布防");
+			}else{
+				status.append(",已撤防");
+				error.append("已撤防 ");
+			}
+			if (sta[1]=='1'){
+				status.append(",被遮挡");
+				error.append("被遮挡 ");
+			}else{
+				status.append(",无遮挡");
+
+			}
+			if (sta[2]=='1'){
+				status.append(",被破拆");
+				error.append("被破拆 ");
+			}else{
+				status.append(",无破拆");
+			}
+			if (sta[3]=='1'){
+				status.append(",主锁打开");
+				error.append("主锁打开 ");
+			}else{
+				status.append(",主锁关闭");
+			}
+			if (sta[4]=='1'){
+				status.append(",电击启动");
+			}else{
+				status.append(",电击关闭");
+				error.append("电击关闭 ");
+			}
+			if (sta[5]=='1'){
+				status.append(",防逃脱启动");
+			}else{
+				status.append(",防逃脱关闭");
+				error.append("防逃脱关闭 ");
+			}
+			ContextMap.get(ctx).setStatus(status.toString());
+			/*ContextMap.get(ctx).setDeploy(sta[0]=='1'?"已布防":"已撤防");
+			ContextMap.get(ctx).setClog(sta[1]=='1'?"被遮挡":"无遮挡");
+			ContextMap.get(ctx).setDemolition(sta[2]=='1'?"被破拆":"无破拆");
+			ContextMap.get(ctx).setLock(sta[3]=='1'?"主锁打开":"主锁关闭");
+			ContextMap.get(ctx).setOnAndoff(sta[4]=='1'?"电击启动":"电击关闭");*/
+			if ( (error.toString())!=null && (error.toString()).length()>2) {
+				ContextMap.get(ctx).setErrorStatus(error.toString());
+			}
+			ContextMap.get(ctx).setUptime(Calendar.getInstance());
+		}
+
+		if (ContextMap.get(ctx).getType()==0) {//初始化布防设置时间
+			FirConn(ctx,card);
+			ContextMap.get(ctx).setType(1);
+		}
+		if ("A0".equals(str[10])){//异常反馈
+			saveOrderToLog(ctx, hexStr);
+			//触发设备状态查询
+			selEquipStatus(ctx,card);
+			//发送预警信息
+			NettyWebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),card,ERRORMAP.get(str[11])));
+		}
+	}
+	/**
+	 * 处理gps设备命令
+	 * @param ctx
+	 * @param hexStr
+	 */
+	private void gpsMes(ChannelHandlerContext ctx, String hexStr) {
+		NgpsData gpsDescData = httpData2(hexStr);
+		//存储gps日志
+		saveMsgToLog(ctx, hexStr);
+		if (null!=gpsDescData) {
+			ContextMap.get(ctx).setTaskId(gpsDescData.getTaskId());
+		//	System.out.println(gpsDescData);
+			if (ContextMap.get(ctx) == null) {//保存电话号码 通过电话号码判断定位信息发送到哪个任务
+				GpsStatusData equip = new GpsStatusData();
+				equip.setNum(gpsDescData.getEquip());
+				ContextMap.put(ctx, equip);
+			} else {
+				if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {
+				} else {
+					//Equip equip=new Equip();
+					ContextMap.get(ctx).setNum(gpsDescData.getEquip());
+				}
+			}
+			if (!"-1".equals(gpsDescData.getErrorStatus())) {
+				//加上设备状态
+				gpsDescData.setStauts(ContextMap.get(ctx).getStatus());
+				gpsDescData.setErrorStatus(ContextMap.get(ctx).getErrorStatus());
+				//数据保存
+				WSgpsData wSgpsData = new WSgpsData(gpsDescData);
+				GPSDATALIST.add(gpsDescData);
+				WSGPSLIST.add(wSgpsData);
+				//发送gps数据
+				NettyWebSocketController.sendMessage2(wSgpsData);
+				//在SaveData.saveRedis()方法中将数据存储到redis;
+				//SystemUtil.gpsDatalist.add(gpsDescData);
+			}
+		}
+	}
 
 
 	/***********************************发送数据*****************************************/
@@ -293,10 +361,19 @@ public class GpsHandleServer {
 			ctx.writeAndFlush(byteBuf);
 		}
 	}
-	public static void sendPower(String card,String userId) {
+
+	/**
+	 *   String flag=pubParam.get("flag");//1:定点 2：间隔 3：持续
+	 *         String duration=pubParam.get("duration");//持续时间
+	 *         String interval=pubParam.get("interval");//间隔时间
+	 * @param card
+	 * @param userId
+	 */
+	public static void sendPower( String flag,String card,String userId,String duration,String interval) {
 		System.out.println("开始电击...");
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
-		String orderStr=sendOrder(card,userId);
+		//String orderStr=sendOrder(card,userId);
+		String orderStr=getPower(flag,card,userId,duration,interval);
 		byte[]order=hexStringToByteArray(orderStr);
 		if(ctx!=null) {
 			//将命令转换成ByteBuf
@@ -305,7 +382,31 @@ public class GpsHandleServer {
 			ctx.writeAndFlush(byteBuf);
 			//保存设备命令日志
 			saveOrderToLog(ctx, orderStr);
-			ORDERMAP.put(card+userId+"0120","0");
+			ORDERMAP.put(card+userId+"14","0");
+		}
+	}
+
+	/**
+	 *   String flag=pubParam.get("flag");//1:定点 2：间隔 3：持续
+	 *         String duration=pubParam.get("duration");//持续时间
+	 *         String interval=pubParam.get("interval");//间隔时间
+	 * @param card
+	 * @param userId
+	 */
+	public static void stopPower(String card,String userId) {
+		System.out.println("停止电击...");
+		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
+		//String orderStr=sendOrder(card,userId);
+		String orderStr=stopPowerOrder(card,userId);
+		byte[]order=hexStringToByteArray(orderStr);
+		if(ctx!=null) {
+			//将命令转换成ByteBuf
+			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
+			//发送命令
+			ctx.writeAndFlush(byteBuf);
+			//保存设备命令日志
+			saveOrderToLog(ctx, orderStr);
+			ORDERMAP.put(card+userId+"13","0");
 		}
 	}
 	//通过手机号找通道
@@ -356,6 +457,8 @@ public class GpsHandleServer {
 		}
 		 InitialSetup(cxt,equipId);
 	}
+
+
 
 
 }

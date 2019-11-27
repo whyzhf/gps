@@ -71,6 +71,29 @@ public class HexadecimalUtil {
 		return String.join("", arr) + "-" + sum;
 	}
 
+	/**
+	 * 当前时间转16进制
+	 * 返回 “16进制时间值-时间值总和”
+	 */
+	public static String get16NumByTime2(int time,String strFormat) {
+		String str = getNowData(strFormat);
+		String[] arr = str.split("-");
+		int sum = 0;
+		for (int i = 0; i < arr.length; i++) {
+
+			if (i==1){
+				int mon=(time<<4)+Integer.parseInt(arr[i]);
+				sum += mon;
+				arr[i] = get16NumAdd0(mon+"", 2);
+			}else{
+				sum += Integer.parseInt(arr[i]);
+				arr[i] = get16NumAdd0(arr[i]+"", 2);
+			}
+
+		}
+		return String.join("", arr) + "-" + sum;
+	}
+
 	//num & 0xff
 	public static int low8(Object num) {
 		return Integer.parseInt(num + "") & 0xff;

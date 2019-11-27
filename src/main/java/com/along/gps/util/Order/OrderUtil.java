@@ -195,7 +195,7 @@ public class OrderUtil {
 		}else if ("01".equals(order)){
 			return "设备未布防";//设备未布防
 		}else if ("02".equals(order)){
-			return "电击无效";//电击无效
+			return "无效";//电击无效
 		}else if ("FF".equals(order)){
 			return "成功";//执行成功
 		}

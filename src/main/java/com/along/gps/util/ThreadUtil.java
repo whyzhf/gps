@@ -35,7 +35,7 @@ public class ThreadUtil {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					System.out.println("1111111111111");
+					//System.out.println("1111111111111");
 					try {
 						while (!GPSDATALIST.isEmpty()) {
 							saveDataBySql();
