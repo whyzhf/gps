@@ -16,11 +16,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.FixedLengthFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
+import org.yeauty.pojo.Session;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,6 +27,7 @@ import static com.along.gps.util.Order.EquipOrder.*;
 import static com.along.gps.util.Order.EquipUtil.getPower;
 import static com.along.gps.util.Order.EquipUtil.stopPowerOrder;
 import static com.along.gps.util.Order.ErrorMsg.ERRORMAP;
+import static com.along.gps.util.Order.GeneralUtils.getJsonStr;
 import static com.along.gps.util.Order.HexadecimalUtil.*;
 import static com.along.gps.util.Order.OrderUtil.retuenPowerOrder;
 import static com.along.gps.util.Gps.HandleData.*;
@@ -94,9 +93,9 @@ public class GpsHandleServer {
 											selEquipStatus(ctx,"00");
 										}
 										//发送更新设备状态，30分钟更新一次（非设备异常情况下）
-										if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){
+										/*if ( ContextMap.get(ctx).getCard()!= null && ContextMap.get(ctx).getUptime()<=0){
 											selEquipStatus(ctx,ContextMap.get(ctx).getCard());
-										}
+										}*/
 										//数据处理
 										if (hexStr.length()<300) {
 											if (hexStr.startsWith("7E 02 00")) {//定位信息
@@ -131,6 +130,7 @@ public class GpsHandleServer {
 									equip.setType(0);
 									equip.setErrorStatus("gps定位成功");
 									ContextMap.put(ctx,equip);
+
 									selEquipStatus(ctx,"00");
 								}
 
@@ -139,6 +139,7 @@ public class GpsHandleServer {
 								 */
 								@Override
 								public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+								//	System.out.println("1111111111111:"+ctx.isRemoved());
 									NettyWebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),ContextMap.get(ctx).getCard(),"gps掉线"));
 									ContextMap.remove(ctx);
 									System.out.println(ctx.channel().remoteAddress() + "->tcp断开连接");
@@ -154,8 +155,9 @@ public class GpsHandleServer {
 								 */
 								@Override
 								public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+								//	System.out.println(ctx.isRemoved());
 									cause.printStackTrace();
-									System.out.println(ctx.channel().remoteAddress() + "->tcp异常:断开连接");
+									System.out.println(ctx.isRemoved()+"::"+ctx.channel().remoteAddress() + "->tcp异常:断开连接");
 									System.out.println(ErrorMsg(ContextMap.get(ctx).getTaskId(), ContextMap.get(ctx).getCard(), "gps掉线"));
 									NettyWebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),ContextMap.get(ctx).getCard(),"gps掉线"));
 									ctx.close();// 关闭客户端
@@ -216,6 +218,7 @@ public class GpsHandleServer {
 	 * @param hexStr
 	 */
 	private void equipMes(ChannelHandlerContext ctx, String hexStr) {
+		NettyWebSocketController.sendMessageDemo(hexStr);
 		//保存设备命令日志
 		saveOrderToLog(ctx, hexStr);
 		//解析出设备ID
@@ -225,6 +228,7 @@ public class GpsHandleServer {
 		if (ContextMap.get(ctx)==null){//保存设备编号
 			GpsStatusData equip=new GpsStatusData();
 			equip.setCard(card);
+			delKeyByCard(card,ctx);
 			ContextMap.put(ctx,equip);
 		}else {
 			if (card.equals(ContextMap.get(ctx).getCard())) {
@@ -233,7 +237,7 @@ public class GpsHandleServer {
 			}
 		}
 		//读取命令反馈
-		ORDERMAP.put(card+user+str[10],retuenPowerOrder(str[12]));
+		ORDERMAP.put(card+user+str[10]+str[11],retuenPowerOrder(str[12]));
 		if("12".equals(str[10])){//解析状态
 			StringBuffer status=new StringBuffer();
 			status.append(get10HexNum(str[11])).append("%(电量)");
@@ -316,9 +320,11 @@ public class GpsHandleServer {
 			if (ContextMap.get(ctx) == null) {//保存电话号码 通过电话号码判断定位信息发送到哪个任务
 				GpsStatusData equip = new GpsStatusData();
 				equip.setNum(gpsDescData.getEquip());
+				delKeyByNum(gpsDescData.getEquip(),ctx);
 				ContextMap.put(ctx, equip);
 			} else {
 				if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {
+
 				} else {
 					//Equip equip=new Equip();
 					ContextMap.get(ctx).setNum(gpsDescData.getEquip());
@@ -333,9 +339,14 @@ public class GpsHandleServer {
 				GPSDATALIST.add(gpsDescData);
 				WSGPSLIST.add(wSgpsData);
 				//发送gps数据
+				//System.out.println(wSgpsData);
 				NettyWebSocketController.sendMessage2(wSgpsData);
 				//在SaveData.saveRedis()方法中将数据存储到redis;
 				//SystemUtil.gpsDatalist.add(gpsDescData);
+			}
+			if (ContextMap.get(ctx).getType()==0) {//初始化布防设置时间
+				FirConn(ctx,gpsDescData.getEquipCard());
+				ContextMap.get(ctx).setType(1);
 			}
 		}
 	}
@@ -369,21 +380,67 @@ public class GpsHandleServer {
 	 * @param card
 	 * @param userId
 	 */
-	public static void sendPower( String flag,String card,String userId,String duration,String interval) {
+	public static int sendPower( String flag,String card,String userId,String duration,String interval) {
 		System.out.println("开始电击...");
+		int res=0;
+		/*try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}*/
+		ContextMap.forEach((K,V)->{
+			System.out.println(K.name()+" # 开始电击 # "+V.toString());
+		});
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
 		//String orderStr=sendOrder(card,userId);
 		String orderStr=getPower(flag,card,userId,duration,interval);
 		byte[]order=hexStringToByteArray(orderStr);
+		ChannelFuture channelFuture =null;
+		ByteBuf byteBuf = Unpooled.copiedBuffer(order);
 		if(ctx!=null) {
 			//将命令转换成ByteBuf
-			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
+			 byteBuf = Unpooled.copiedBuffer(order);
 			//发送命令
-			ctx.writeAndFlush(byteBuf);
+			 channelFuture = ctx.writeAndFlush(byteBuf);
+
 			//保存设备命令日志
 			saveOrderToLog(ctx, orderStr);
-			ORDERMAP.put(card+userId+"14","0");
+			String dim3="";
+			if ("1".equals(flag)){
+				dim3="80";
+			}else if("2".equals(flag)){
+				dim3="40";
+			}else{
+				dim3="20";
+			}
+			ORDERMAP.put(card+userId+"14"+dim3,"0");
+		}else{
+			System.out.println("获取通道失败...");
 		}
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		int ind=4;
+		/*while (!channelFuture.isDone()||ind>0){
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			ind--;
+		}*/
+		if (channelFuture.isDone()){
+			res=1;
+		}else{
+			System.out.println("发送失败。。。正在重发");
+			ctx.writeAndFlush(byteBuf);
+			res=2;
+		}
+
+		ctx.writeAndFlush(byteBuf);
+		return res;
 	}
 
 	/**
@@ -395,6 +452,14 @@ public class GpsHandleServer {
 	 */
 	public static void stopPower(String card,String userId) {
 		System.out.println("停止电击...");
+		ContextMap.forEach((K,V)->{
+			System.out.println(K.name()+" # 停止电击 # "+V.toString());
+		});
+		/*try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}*/
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
 		//String orderStr=sendOrder(card,userId);
 		String orderStr=stopPowerOrder(card,userId);
@@ -403,13 +468,58 @@ public class GpsHandleServer {
 			//将命令转换成ByteBuf
 			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
 			//发送命令
+			ChannelFuture channelFuture=ctx.writeAndFlush(byteBuf);
+			int ind=4;
+		/*	while (!channelFuture.isDone()||ind>0){
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				ind--;
+			}*/
+
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if(channelFuture.isDone()){
+
+			}else{
+				System.out.println("发送失败...重发中");
+				ctx.writeAndFlush(byteBuf);
+			}
+
 			ctx.writeAndFlush(byteBuf);
 			//保存设备命令日志
 			saveOrderToLog(ctx, orderStr);
-			ORDERMAP.put(card+userId+"13","0");
+			ORDERMAP.put(card+userId+"1410","0");
+		}else{
+			System.out.println("获取通道失败...");
 		}
 	}
-	//通过手机号找通道
+	//通过手机号删除通道
+	private static void delKeyByNum(String value,ChannelHandlerContext chc ){
+		Iterator<Map.Entry<ChannelHandlerContext, GpsStatusData>> entries = ContextMap.entrySet().iterator();
+		while(entries.hasNext()){
+			Map.Entry<ChannelHandlerContext, GpsStatusData> entry = entries.next();
+			if (chc!=entry.getKey() && value.equals(entry.getValue().getNum())){
+						ContextMap.remove(entry.getKey());
+			}
+		}
+	}
+
+	//通过设备删除通道
+	private static void delKeyByCard(String value,ChannelHandlerContext chc ){
+		Iterator<Map.Entry<ChannelHandlerContext, GpsStatusData>> entries = ContextMap.entrySet().iterator();
+		while(entries.hasNext()){
+			Map.Entry<ChannelHandlerContext, GpsStatusData> entry = entries.next();
+			if (chc!=entry.getKey() && value.equals(entry.getValue().getCard())){
+				ContextMap.remove(entry.getKey());
+			}
+		}
+	}
 	private static ChannelHandlerContext getKeyByNum(Map<ChannelHandlerContext,GpsStatusData> map,String value){
 		ChannelHandlerContext key=null;
 		for (Map.Entry<ChannelHandlerContext, GpsStatusData> entry : map.entrySet()) {

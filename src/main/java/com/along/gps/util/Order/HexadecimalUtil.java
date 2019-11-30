@@ -2,6 +2,8 @@ package com.along.gps.util.Order;
 
 import org.thymeleaf.util.StringUtils;
 
+import java.nio.ByteBuffer;
+
 import static com.along.gps.util.DataUtil.getNowData;
 
 
@@ -10,8 +12,13 @@ import static com.along.gps.util.DataUtil.getNowData;
  * */
 public class HexadecimalUtil {
 	public static void main(String[] args) {
-		System.out.println(low8("01"));
-		System.out.println((byte) 26);
+		//System.out.println(low8("01"));
+		/*char[] bytes = hex10Byte(get10HexNum("8"));
+		for (char aByte : bytes) {
+			System.out.println(aByte);
+		}*/
+		System.out.println(Integer.parseInt("58", 16));
+
 	}
 
 	/**
@@ -141,7 +148,22 @@ public class HexadecimalUtil {
 	 * 16进制表示的字符串转换为二进制数组
 	 */
 	public static char[] hex10Byte(int num) {
-		return Integer.toBinaryString(num).toCharArray();
+		char[] res=new char[]{'0','0','0','0','0','0','0','0'};
+		char[] chars = Integer.toBinaryString(num).toCharArray();
+		/*for (int i = 0; i <chars.length ; i++) {
+			System.out.print(chars[i]+"  ");
+		}
+		System.out.println();*/
+		if(chars.length==8){
+			return chars;
+		}else{
+			//System.out.println(num);
+			for (int i = 0; i <chars.length ; i++) {
+				res[8-chars.length+i]=chars[i];
+			}
+			return res;
+		}
+
 	}
 
 }

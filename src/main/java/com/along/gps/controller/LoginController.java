@@ -73,9 +73,17 @@ public class LoginController {
         String duration=pubParam.get("duration");//持续时间
         String interval=pubParam.get("interval");//间隔时间
         userId = (1000000+Integer.parseInt(userId))+"";
+        String dim3="";
+        if ("1".equals(flag)){
+            dim3="80";
+        }else if("2".equals(flag)){
+            dim3="40";
+        }else{
+            dim3="20";
+        }
         //存储已连接的card
         List<String> caraList=new ArrayList<>();
-    //    ContextMap.forEach((K,V)-> System.out.println(K+"  "+V));
+       // ContextMap.forEach((K,V)-> System.out.println(K+"  "+V));
         for (int i = 0; i < cardArr.length; i++) {
             if (cardArr[i].length()>8){//统一转换成card操作
                 card = getcardByNum(ContextMap, cardArr[i]);
@@ -87,14 +95,19 @@ public class LoginController {
                 list.add(new EquipS(cardArr[i],"该设备未连接",""));
             }else {
                 caraList.add(cardArr[i]);
-                GpsHandleServer.sendPower(flag,card,userId,duration,interval);
+                int power = sendPower(flag, card, userId, duration, interval);
+
             }
         }
         if (list.size()==cardArr.length){
             resmap.put("data",list);
+      //      System.out.println("end......1");
             return resmap;
         }
-        for (int i = 0; i <5 ; i++) {
+       ORDERMAP.forEach((K,V)->{
+            System.out.println("  "+K+"  ## " +V);
+        });
+        for (int i = 0; i <15 ; i++) {
             try {
                 Iterator<String> iter = caraList.iterator();
                 while (iter.hasNext()) {
@@ -104,16 +117,18 @@ public class LoginController {
                     } else {
                         card = equipcard;
                     }
-                    if(null==ORDERMAP.get(card+userId+"14")) {
-                        if (!"0".equals(ORDERMAP.get(card + userId + "14"))) {
-                            list.add(new EquipS(equipcard, ORDERMAP.get(card + userId + "14"), gpsService.getPrisoner(card)));
+                    System.out.println("mingling:  "+(card + userId + "14"+dim3));
+                    if(null!=ORDERMAP.get(card+userId+"14"+dim3)) {
+                        if (!"0".equals(ORDERMAP.get(card + userId + "14"+dim3))) {
+                            list.add(new EquipS(equipcard, ORDERMAP.get(card + userId + "14"+dim3), gpsService.getPrisoner(card)));
                             iter.remove();
-                            ORDERMAP.remove(card + userId + "14");
+                            ORDERMAP.remove(card + userId + "14"+dim3);
                         }
                     }
                 }
                 if (list.size() == cardArr.length) {
                     resmap.put("data", list);
+             //       System.out.println("end......12");
                     return resmap;
                 }
                 Thread.sleep(1000);
@@ -131,8 +146,12 @@ public class LoginController {
             list.add(new EquipS(caraList.get(i), "等待超时", gpsService.getPrisoner(card)));
 
 
-
         }
+      //  System.out.println("end......13");
+       ORDERMAP.forEach((K,V)->{
+            System.out.println("  "+K+"  ## " +V);
+        });
+
         resmap.put("data", list);
         return resmap;
 
@@ -173,9 +192,10 @@ public class LoginController {
         }
         if (list.size()==cardArr.length){
             resmap.put("data",list);
+	    //    System.out.println("end......1");
             return resmap;
         }
-        for (int i = 0; i <5 ; i++) {
+        for (int i = 0; i <15 ; i++) {
             try {
                 Iterator<String> iter = caraList.iterator();
                 while (iter.hasNext()) {
@@ -185,16 +205,17 @@ public class LoginController {
                     } else {
                         card = equipcard;
                     }
-                    if(null==ORDERMAP.get(card+userId+"14")) {
-                        if (!"0".equals(ORDERMAP.get(card + userId + "14"))) {
-                            list.add(new EquipS(equipcard, ORDERMAP.get(card + userId + "14"), gpsService.getPrisoner(card)));
+                    if(null!=ORDERMAP.get(card+userId+"1410")) {
+                        if (!"0".equals(ORDERMAP.get(card + userId + "1410"))) {
+                            list.add(new EquipS(equipcard, ORDERMAP.get(card + userId + "1410"), gpsService.getPrisoner(card)));
                             iter.remove();
-                            ORDERMAP.remove(card + userId + "14");
+                            ORDERMAP.remove(card + userId + "1410");
                         }
                     }
                 }
                 if (list.size() == cardArr.length) {
                     resmap.put("data", list);
+	             //   System.out.println("end......2");
                     return resmap;
                 }
                 Thread.sleep(1000);
@@ -214,6 +235,7 @@ public class LoginController {
 
 
         }
+	 //   System.out.println("end......3");
         resmap.put("data", list);
         return resmap;
 

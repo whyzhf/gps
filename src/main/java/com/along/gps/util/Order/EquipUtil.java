@@ -149,7 +149,7 @@ public class EquipUtil {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(stopPowerOrder("001", "002"));
+		System.out.println(getPower("2","001", "002","8","3"));
 	}
 	/**
 	 *电击模式
@@ -194,6 +194,7 @@ public class EquipUtil {
 			sum += get10HexNum(CMD2);
 			sb.append(CMD2);
 			//持续时间
+			CMD3=get16NumAdd0(CMD3, 2);
 			sum += get10HexNum(CMD3);
 			sb.append(CMD3);
 			//间隔时间
@@ -220,10 +221,10 @@ public class EquipUtil {
 		}
 			//添加校验位
 			sb.append(get16NumAdd0(low8(sum)+"",2).toUpperCase());
-			arr2=sb.toString().split("(?<=\\G.{2})");
+		/*	arr2=sb.toString().split("(?<=\\G.{2})");
 			str= arr2[0]+arr2[1]+"#"+arr2[2]+" "+arr2[3]+" "+arr2[4]+" "+arr2[5]+"#"+arr2[6]+" "+arr2[7]+" "+arr2[8]+" "+arr2[9]
 					+"#"+arr2[10]+" "+arr2[11]+" "+arr2[12]+"#"+arr2[13]+" "+arr2[14]+" "+arr2[15]+" "+arr2[16]+" "+arr2[17]+" "+arr2[18]+"$"+arr2[19];
-			System.out.println("send:"+str);
+			System.out.println("send:"+str);*/
 			return sb.toString();
 	}
 	/**
@@ -248,7 +249,7 @@ public class EquipUtil {
 		sum=sum+(get10HexNum(arr2[0])+get10HexNum(arr2[1])+get10HexNum(arr2[2])+get10HexNum(arr2[3]));
 		sb.append(get16NumAdd0(equip02,8));
 		//添加命令
-		String CMD1 = "13",CMD2="40",CMD3="00";
+		String CMD1 = "14",CMD2="10",CMD3="00";
 		sum += get10HexNum(CMD1);
 		sb.append(CMD1);
 		sum += get10HexNum(CMD2);
@@ -262,10 +263,10 @@ public class EquipUtil {
 		sb.append(time.split("-")[0]);
 		//添加校验位
 		sb.append(get16NumAdd0(low8(sum)+"",2).toUpperCase());
-		arr2=sb.toString().split("(?<=\\G.{2})");
+		/*arr2=sb.toString().split("(?<=\\G.{2})");
 		str= arr2[0]+arr2[1]+"#"+arr2[2]+" "+arr2[3]+" "+arr2[4]+" "+arr2[5]+"#"+arr2[6]+" "+arr2[7]+" "+arr2[8]+" "+arr2[9]
 				+"#"+arr2[10]+" "+arr2[11]+" "+arr2[12]+"#"+arr2[13]+" "+arr2[14]+" "+arr2[15]+" "+arr2[16]+" "+arr2[17]+" "+arr2[18]+"$"+arr2[19];
-		System.out.println("send:"+str);
+		System.out.println("send:"+str);*/
 		return sb.toString();
 	}
 }

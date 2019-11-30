@@ -27,7 +27,7 @@ import static com.along.gps.util.SysUtil.WEB_DATA_LOCATION;
 public class ClientTest {
 
 	public static void main(String args[]) {
-		for (int i = 0; i <2; i++) {
+		for (int i = 0; i <1; i++) {
 			initServer(8899);
 		}
 	}
@@ -48,7 +48,7 @@ public static void initServer(int port){
 	//}
 }
 	Selector sel;
-private static int flagbb=0;
+	private static int flagbb=0;
 	public synchronized void  initClient(int port) throws IOException {
 		System.out.println(sel);
 		SocketChannel sc = SocketChannel.open();
@@ -103,16 +103,17 @@ private static int flagbb=0;
 						BufferedReader br = new BufferedReader(in);
 						while(br.ready()) {
 							String str=br.readLine();
+							if(!"".equals(str)) {
+								if (str.contains("7E02000051010603455587")) {
 
-							if (str.contains("7E02000051010603455587")){
-
-							}else{
-								byte[] bs = hexStringToByteArray(str);
-								sc.write(bf.wrap(bs));
-								try {
-									Thread.sleep(1000);
-								} catch (InterruptedException e) {
-									e.printStackTrace();
+								} else {
+									byte[] bs = hexStringToByteArray(str);
+									sc.write(bf.wrap(bs));
+									try {
+										Thread.sleep(1000);
+									} catch (InterruptedException e) {
+										e.printStackTrace();
+									}
 								}
 							}
 						}

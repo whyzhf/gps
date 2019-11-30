@@ -25,6 +25,7 @@ import java.util.*;
 
 
 import static com.along.gps.util.Gps.ClientTest.initServer;
+import static com.along.gps.util.Gps.GpsHandleServer.send;
 import static com.along.gps.util.Order.GeneralUtils.getJsonStr;
 import static com.along.gps.util.SystemUtil.sessionmap;
 
@@ -92,6 +93,7 @@ public class NettyWebSocketController {
 	@OnMessage
 	public void OnMessage(Session session, String message) {
 			session.sendText("");
+		send(message);
 	}
 
 	@OnBinary
@@ -116,6 +118,24 @@ public class NettyWebSocketController {
 				//	Map<String, WSgpsData> data = new HashMap<>();
 				//	data.put("data",wsData);
 					session.sendText("{\"data\":"+getJsonStr(wsData)+"}");
+				}else if(session != null && !session.isOpen()){
+					it.remove();
+				}
+			}
+		}
+	}
+
+	public static synchronized void sendMessageDemo(String string) {
+		//获取session
+		Set<Session> sessionSet = SystemUtil.NETTYSESSIONMAP.get("along");
+		if (sessionSet!=null) {
+			Iterator<Session> it = sessionSet.iterator();
+			while (it.hasNext()) {
+				Session session = it.next();
+				if (session != null && session.isOpen()) {
+					//	Map<String, WSgpsData> data = new HashMap<>();
+					//	data.put("data",wsData);
+					session.sendText(string);
 				}else if(session != null && !session.isOpen()){
 					it.remove();
 				}
@@ -174,7 +194,4 @@ public class NettyWebSocketController {
 			}
 		}
 	}
-
-
-
 }

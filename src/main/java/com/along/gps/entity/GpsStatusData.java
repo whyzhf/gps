@@ -79,7 +79,6 @@ public class GpsStatusData {
 	}
 
 	public void setUptime(Calendar uptime) {
-
 		this.uptime = uptime;
 	}
 }

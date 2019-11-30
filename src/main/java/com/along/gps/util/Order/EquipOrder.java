@@ -21,18 +21,43 @@ public class EquipOrder {
 	//开启布防，设置时间
 	public static void InitialSetup(ChannelHandlerContext cxt, String equip){
 		new Thread(()->{
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			sendToWeb(cxt,send(equip, "9175040", 17));
 			try {
-				Thread.sleep(500);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			sendToWeb(cxt,send(equip, "9175040", 13));
+			/*try {
+				Thread.sleep(20000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (null!=ORDERMAP.get(equip+"9175040"+"0180")){
+				sendToWeb(cxt,send(equip, "9175040", 17));
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				sendToWeb(cxt,send(equip, "9175040", 13));
+
+			}*/
 		}).start();
 	}
 	//查询设备状态
 	public static void selEquipStatus(ChannelHandlerContext cxt,String equipId){
 		new Thread(()->{
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 			sendToWeb(cxt,sendStatus(equipId));
 		}).start();
 	}
