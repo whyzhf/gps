@@ -78,6 +78,7 @@ public class GpsHandleServer {
 								@Override
 								protected void channelRead0(ChannelHandlerContext ctx, ByteBuf bf) throws Exception {
 									// System.out.println("开始读取数据...");
+
 									StringBuilder sb = new StringBuilder();
 									try {
 										byte[] data = new byte[bf.readableBytes()];
@@ -388,23 +389,37 @@ public class GpsHandleServer {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}*/
-		ContextMap.forEach((K,V)->{
+		/*ContextMap.forEach((K,V)->{
 			System.out.println(K.name()+" # 开始电击 # "+V.toString());
-		});
+		});*/
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
 		//String orderStr=sendOrder(card,userId);
 		String orderStr=getPower(flag,card,userId,duration,interval);
 		byte[]order=hexStringToByteArray(orderStr);
 		ChannelFuture channelFuture =null;
+		//将命令转换成ByteBuf
 		ByteBuf byteBuf = Unpooled.copiedBuffer(order);
 		if(ctx!=null) {
-			//将命令转换成ByteBuf
-			 byteBuf = Unpooled.copiedBuffer(order);
-			//发送命令
-			 channelFuture = ctx.writeAndFlush(byteBuf);
-
-			//保存设备命令日志
-			saveOrderToLog(ctx, orderStr);
+			synchronized (ctx) {
+				//发送命令
+				channelFuture = ctx.writeAndFlush(byteBuf);
+				channelFuture.addListener(new ChannelFutureListener() {
+					@Override
+					public void operationComplete(ChannelFuture channelFuture) throws Exception {
+						if (channelFuture.isSuccess()) {
+							System.out.println("ok...");
+						} else {
+							//记录错误,重发一次
+							System.out.println("error");
+							channelFuture.cause().printStackTrace();
+							ByteBuf byteBuf = Unpooled.copiedBuffer(order);
+							ctx.writeAndFlush(byteBuf);
+						}
+					}
+				});
+				//保存设备命令日志
+				saveOrderToLog(ctx, orderStr);
+			}
 			String dim3="";
 			if ("1".equals(flag)){
 				dim3="80";
@@ -417,29 +432,9 @@ public class GpsHandleServer {
 		}else{
 			System.out.println("获取通道失败...");
 		}
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		int ind=4;
-		/*while (!channelFuture.isDone()||ind>0){
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			ind--;
-		}*/
-		if (channelFuture.isDone()){
-			res=1;
-		}else{
-			System.out.println("发送失败。。。正在重发");
-			ctx.writeAndFlush(byteBuf);
-			res=2;
-		}
 
-		ctx.writeAndFlush(byteBuf);
+
+		//ctx.writeAndFlush(byteBuf);
 		return res;
 	}
 
@@ -465,35 +460,29 @@ public class GpsHandleServer {
 		String orderStr=stopPowerOrder(card,userId);
 		byte[]order=hexStringToByteArray(orderStr);
 		if(ctx!=null) {
-			//将命令转换成ByteBuf
-			ByteBuf byteBuf = Unpooled.copiedBuffer(order);
-			//发送命令
-			ChannelFuture channelFuture=ctx.writeAndFlush(byteBuf);
-			int ind=4;
-		/*	while (!channelFuture.isDone()||ind>0){
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				ind--;
-			}*/
+			synchronized (ctx) {
+				//将命令转换成ByteBuf
+				ByteBuf byteBuf = Unpooled.copiedBuffer(order);
+				//发送命令
+				ChannelFuture channelFuture = ctx.writeAndFlush(byteBuf);
+				channelFuture.addListener(new ChannelFutureListener() {
+					@Override
+					public void operationComplete(ChannelFuture channelFuture) throws Exception {
+						if (channelFuture.isSuccess()) {
+							System.out.println("ok...");
+						} else {
+							//记录错误,重发一次
+							System.out.println("error");
+							channelFuture.cause().printStackTrace();
+							ByteBuf byteBuf = Unpooled.copiedBuffer(order);
+							ctx.writeAndFlush(byteBuf);
+						}
+					}
+				});
 
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				//保存设备命令日志
+				saveOrderToLog(ctx, orderStr);
 			}
-			if(channelFuture.isDone()){
-
-			}else{
-				System.out.println("发送失败...重发中");
-				ctx.writeAndFlush(byteBuf);
-			}
-
-			ctx.writeAndFlush(byteBuf);
-			//保存设备命令日志
-			saveOrderToLog(ctx, orderStr);
 			ORDERMAP.put(card+userId+"1410","0");
 		}else{
 			System.out.println("获取通道失败...");

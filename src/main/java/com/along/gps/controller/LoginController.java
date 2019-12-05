@@ -8,6 +8,7 @@ package com.along.gps.controller;
 
 import com.along.gps.entity.EquipS;
 import com.along.gps.entity.GpsDescData;
+import com.along.gps.entity.GpsStatusData;
 import com.along.gps.entity.WSgpsData;
 import com.along.gps.service.GpsService;
 import com.along.gps.util.FileUtil;
@@ -15,6 +16,7 @@ import com.along.gps.util.FileUtil;
 import com.along.gps.util.Gps.GpsHandleServer;
 import com.along.gps.util.JedisUtil;
 import com.along.gps.util.SystemUtil;
+import io.netty.channel.ChannelHandlerContext;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -95,8 +97,7 @@ public class LoginController {
                 list.add(new EquipS(cardArr[i],"该设备未连接",""));
             }else {
                 caraList.add(cardArr[i]);
-                int power = sendPower(flag, card, userId, duration, interval);
-
+                sendPower(flag, card, userId, duration, interval);
             }
         }
         if (list.size()==cardArr.length){
@@ -152,6 +153,16 @@ public class LoginController {
             System.out.println("  "+K+"  ## " +V);
         });
 
+        Iterator<Map.Entry<String, String>> entries = ORDERMAP.entrySet().iterator();
+        while(entries.hasNext()){
+            Map.Entry<String, String> entry = entries.next();
+            if (entry.getKey().endsWith("1480")||entry.getKey().endsWith("1440")
+                    ||entry.getKey().endsWith("1420")||entry.getKey().endsWith("1410")){
+
+            }else{
+                ORDERMAP.remove(entry.getKey());
+            }
+        }
         resmap.put("data", list);
         return resmap;
 
@@ -236,6 +247,16 @@ public class LoginController {
 
         }
 	 //   System.out.println("end......3");
+        Iterator<Map.Entry<String, String>> entries = ORDERMAP.entrySet().iterator();
+        while(entries.hasNext()){
+            Map.Entry<String, String> entry = entries.next();
+            if (entry.getKey().endsWith("1480")||entry.getKey().endsWith("1440")
+                    ||entry.getKey().endsWith("1420")||entry.getKey().endsWith("1410")){
+
+            }else{
+                ORDERMAP.remove(entry.getKey());
+            }
+        }
         resmap.put("data", list);
         return resmap;
 
@@ -291,7 +312,7 @@ public class LoginController {
         return SystemUtil.FLAG==0?"已开启坐标转换":"已关闭坐标转换";
     }
 
-    @RequestMapping(value = "initgpsServer")
+   /* @RequestMapping(value = "initgpsServer")
     public String initgpsServer(HttpServletRequest request) {
         JedisUtil jedisUtil = JedisUtil.getInstance();
         Jedis jedis = jedisUtil.getJedis();
@@ -303,6 +324,6 @@ public class LoginController {
         initServer(8899);
         System.out.println("已开启gps发送");
         return "已开启gps发送";
-    }
+    }*/
 
 }
