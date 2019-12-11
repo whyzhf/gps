@@ -146,7 +146,6 @@ public class LoginController {
 
             list.add(new EquipS(caraList.get(i), "等待超时", gpsService.getPrisoner(card)));
 
-
         }
       //  System.out.println("end......13");
        ORDERMAP.forEach((K,V)->{

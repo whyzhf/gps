@@ -157,12 +157,13 @@ public class GpsHandleServer {
 								@Override
 								public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 								//	System.out.println(ctx.isRemoved());
+									ContextMap.remove(ctx);
 									cause.printStackTrace();
 									System.out.println(ctx.isRemoved()+"::"+ctx.channel().remoteAddress() + "->tcp异常:断开连接");
-									System.out.println(ErrorMsg(ContextMap.get(ctx).getTaskId(), ContextMap.get(ctx).getCard(), "gps掉线"));
+									//System.out.println(ErrorMsg(ContextMap.get(ctx).getTaskId(), ContextMap.get(ctx).getCard(), "gps掉线"));
 									NettyWebSocketController.sendMessage2(ErrorMsg(ContextMap.get(ctx).getTaskId(),ContextMap.get(ctx).getCard(),"gps掉线"));
 									ctx.close();// 关闭客户端
-									ContextMap.remove(ctx);
+
 								}
 
 								@Override
@@ -231,9 +232,11 @@ public class GpsHandleServer {
 			equip.setCard(card);
 			delKeyByCard(card,ctx);
 			ContextMap.put(ctx,equip);
+
 		}else {
 			if (card.equals(ContextMap.get(ctx).getCard())) {
 			}else{
+				delKeyByCard(card,ctx);
 				ContextMap.get(ctx).setCard(card);
 			}
 		}
@@ -328,6 +331,7 @@ public class GpsHandleServer {
 
 				} else {
 					//Equip equip=new Equip();
+					delKeyByNum(gpsDescData.getEquip(),ctx);
 					ContextMap.get(ctx).setNum(gpsDescData.getEquip());
 				}
 			}
@@ -389,10 +393,11 @@ public class GpsHandleServer {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}*/
-		/*ContextMap.forEach((K,V)->{
-			System.out.println(K.name()+" # 开始电击 # "+V.toString());
-		});*/
+		ContextMap.forEach((K,V)->{
+			System.out.println(K.channel().remoteAddress()+" # 开始电击 # "+V.getCard());
+		});
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
+
 		//String orderStr=sendOrder(card,userId);
 		String orderStr=getPower(flag,card,userId,duration,interval);
 		byte[]order=hexStringToByteArray(orderStr);
@@ -408,12 +413,13 @@ public class GpsHandleServer {
 					public void operationComplete(ChannelFuture channelFuture) throws Exception {
 						if (channelFuture.isSuccess()) {
 							System.out.println("ok...");
+							System.out.println("done.."+channelFuture.isDone());
 						} else {
 							//记录错误,重发一次
 							System.out.println("error");
-							channelFuture.cause().printStackTrace();
+						/*	channelFuture.cause().printStackTrace();
 							ByteBuf byteBuf = Unpooled.copiedBuffer(order);
-							ctx.writeAndFlush(byteBuf);
+							ctx.writeAndFlush(byteBuf);*/
 						}
 					}
 				});
@@ -473,9 +479,9 @@ public class GpsHandleServer {
 						} else {
 							//记录错误,重发一次
 							System.out.println("error");
-							channelFuture.cause().printStackTrace();
+							/*channelFuture.cause().printStackTrace();
 							ByteBuf byteBuf = Unpooled.copiedBuffer(order);
-							ctx.writeAndFlush(byteBuf);
+							ctx.writeAndFlush(byteBuf);*/
 						}
 					}
 				});
@@ -493,7 +499,7 @@ public class GpsHandleServer {
 		Iterator<Map.Entry<ChannelHandlerContext, GpsStatusData>> entries = ContextMap.entrySet().iterator();
 		while(entries.hasNext()){
 			Map.Entry<ChannelHandlerContext, GpsStatusData> entry = entries.next();
-			if (chc!=entry.getKey() && value.equals(entry.getValue().getNum())){
+			if ( value.equals(entry.getValue().getNum())){
 						ContextMap.remove(entry.getKey());
 			}
 		}
@@ -504,7 +510,7 @@ public class GpsHandleServer {
 		Iterator<Map.Entry<ChannelHandlerContext, GpsStatusData>> entries = ContextMap.entrySet().iterator();
 		while(entries.hasNext()){
 			Map.Entry<ChannelHandlerContext, GpsStatusData> entry = entries.next();
-			if (chc!=entry.getKey() && value.equals(entry.getValue().getCard())){
+			if (value.equals(entry.getValue().getCard())){
 				ContextMap.remove(entry.getKey());
 			}
 		}
