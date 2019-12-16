@@ -393,9 +393,9 @@ public class GpsHandleServer {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}*/
-		ContextMap.forEach((K,V)->{
+		/*ContextMap.forEach((K,V)->{
 			System.out.println(K.channel().remoteAddress()+" # 开始电击 # "+V.getCard());
-		});
+		});*/
 		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
 
 		//String orderStr=sendOrder(card,userId);
@@ -453,9 +453,9 @@ public class GpsHandleServer {
 	 */
 	public static void stopPower(String card,String userId) {
 		System.out.println("停止电击...");
-		ContextMap.forEach((K,V)->{
+		/*ContextMap.forEach((K,V)->{
 			System.out.println(K.name()+" # 停止电击 # "+V.toString());
-		});
+		});*/
 		/*try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {

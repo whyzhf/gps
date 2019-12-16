@@ -105,9 +105,9 @@ public class LoginController {
       //      System.out.println("end......1");
             return resmap;
         }
-       ORDERMAP.forEach((K,V)->{
+       /*ORDERMAP.forEach((K,V)->{
             System.out.println("  "+K+"  ## " +V);
-        });
+        });*/
         for (int i = 0; i <15 ; i++) {
             try {
                 Iterator<String> iter = caraList.iterator();
@@ -118,7 +118,7 @@ public class LoginController {
                     } else {
                         card = equipcard;
                     }
-                    System.out.println("mingling:  "+(card + userId + "14"+dim3));
+               //     System.out.println("mingling:  "+(card + userId + "14"+dim3));
                     if(null!=ORDERMAP.get(card+userId+"14"+dim3)) {
                         if (!"0".equals(ORDERMAP.get(card + userId + "14"+dim3))) {
                             list.add(new EquipS(equipcard, ORDERMAP.get(card + userId + "14"+dim3), gpsService.getPrisoner(card)));
@@ -148,9 +148,9 @@ public class LoginController {
 
         }
       //  System.out.println("end......13");
-       ORDERMAP.forEach((K,V)->{
+      /* ORDERMAP.forEach((K,V)->{
             System.out.println("  "+K+"  ## " +V);
-        });
+        });*/
 
         Iterator<Map.Entry<String, String>> entries = ORDERMAP.entrySet().iterator();
         while(entries.hasNext()){

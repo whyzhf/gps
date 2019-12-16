@@ -80,7 +80,7 @@ public class NettyWebSocketController {
 
 	@OnClose
 	public void onClose(Session session) throws IOException {
-		System.out.println("one connection closed");
+	//	System.out.println("one connection closed");
 		session.flush();
 		session.close();
 	}
