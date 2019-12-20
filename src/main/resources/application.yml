@@ -78,7 +78,7 @@ pagehelper:
   support-methods-arguments: true
 
 
-netty-websocket:
+netty-websocket:     #对应@ServerEndpoint(prefix = "netty-websocket" )
   host: 0.0.0.0
   path: /gps/WebSocket
   port: 8099

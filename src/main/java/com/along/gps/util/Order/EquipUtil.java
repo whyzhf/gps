@@ -149,8 +149,69 @@ public class EquipUtil {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(getPower("2","001", "002","8","3"));
+		System.out.println(getOnOffPower("2","001", "002"));
 	}
+
+	/**
+	 *电击开关
+	 * CMD2=80 开 CMD2=40关
+	 */
+	public static String getOnOffPower(String flag,String equip,String equip02){
+		StringBuffer sb=new StringBuffer(40);
+		int sum=190;
+		//添加head,len
+		sb.append("AA14");
+		//添加设备id
+		//sum+=Integer.parseInt(equip);
+		String str=get16NumAdd0(equip,8);
+		//拆分字符串
+		String[]arr = str.split("(?<=\\G.{2})");
+		sum=sum+(get10HexNum(arr[0])+get10HexNum(arr[1])+get10HexNum(arr[2])+get10HexNum(arr[3]));
+		sb.append(str);
+		//添加遥控器id
+		String str2=get16NumAdd0(equip02,8);
+		//拆分字符串
+		String[]arr2 = str2.split("(?<=\\G.{2})");
+		sum=sum+(get10HexNum(arr2[0])+get10HexNum(arr2[1])+get10HexNum(arr2[2])+get10HexNum(arr2[3]));
+		sb.append(get16NumAdd0(equip02,8));
+		//添加命令
+		String CMD1 = "13",CMD2="",CMD3="";
+		sum += get10HexNum(CMD1);
+		sb.append(CMD1);
+		if ("1".equals(flag)) {//打开电击
+			CMD2 = "80";
+			sum += get10HexNum(CMD2);
+			sb.append(CMD2);
+			CMD3 = "00";
+			sum += get10HexNum(CMD3);
+			sb.append(CMD3);
+			//添加时间
+			String time = get16NumByTime("yy-MM-dd-HH-mm-ss");
+			//time="1208020A3121-118";
+			sum += Integer.parseInt(time.split("-")[1]);
+			sb.append(time.split("-")[0]);
+		} else{//关闭电击
+			CMD2 = "40";
+			sum += get10HexNum(CMD2);
+			sb.append(CMD2);
+			CMD3 = "00";
+			sum += get10HexNum(CMD3);
+			sb.append(CMD3);
+			//添加时间
+			String time = get16NumByTime("yy-MM-dd-HH-mm-ss");
+			//time="1208020A3121-118";
+			sum += Integer.parseInt(time.split("-")[1]);
+			sb.append(time.split("-")[0]);
+		}
+		//添加校验位
+		sb.append(get16NumAdd0(low8(sum)+"",2).toUpperCase());
+			arr2=sb.toString().split("(?<=\\G.{2})");
+			str= arr2[0]+arr2[1]+"#"+arr2[2]+" "+arr2[3]+" "+arr2[4]+" "+arr2[5]+"#"+arr2[6]+" "+arr2[7]+" "+arr2[8]+" "+arr2[9]
+					+"#"+arr2[10]+" "+arr2[11]+" "+arr2[12]+"#"+arr2[13]+" "+arr2[14]+" "+arr2[15]+" "+arr2[16]+" "+arr2[17]+" "+arr2[18]+"$"+arr2[19];
+			System.out.println("send:"+str);
+		return sb.toString();
+	}
+
 	/**
 	 *电击模式
 	 */

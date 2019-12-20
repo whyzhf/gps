@@ -77,7 +77,6 @@ public static void initServer(int port){
 					SocketChannel sc = (SocketChannel) key.channel();
 					if (sc.finishConnect()) {
 						System.out.println("客户端连接成功");
-
 						sc.configureBlocking(false);
 						sc.register(sel, SelectionKey.OP_READ);
 						ByteBuffer bf = ByteBuffer.allocate(1024);
@@ -92,7 +91,6 @@ public static void initServer(int port){
 						sc.write(bf.wrap(bs2));
 						System.out.println("客户端向服务端发送消息");
 						try {
-
 							Thread.sleep(1000);
 						} catch (Exception e) {
 							e.printStackTrace();

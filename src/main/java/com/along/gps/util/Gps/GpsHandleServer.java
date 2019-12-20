@@ -274,10 +274,10 @@ public class GpsHandleServer {
 				status.append(",主锁关闭");
 			}
 			if (sta[4]=='1'){
-				status.append(",电击启动");
+				status.append(",制伏启动");
 			}else{
-				status.append(",电击关闭");
-				error.append("电击关闭 ");
+				status.append(",制伏关闭");
+				error.append("制伏关闭 ");
 			}
 			if (sta[5]=='1'){
 				status.append(",防逃脱启动");
@@ -327,9 +327,9 @@ public class GpsHandleServer {
 				delKeyByNum(gpsDescData.getEquip(),ctx);
 				ContextMap.put(ctx, equip);
 			} else {
-				if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {
+				if (gpsDescData.getEquip().equals(ContextMap.get(ctx).getNum())) {//已存在，不处理
 
-				} else {
+				} else {//更新电话号码，清理过期数据
 					//Equip equip=new Equip();
 					delKeyByNum(gpsDescData.getEquip(),ctx);
 					ContextMap.get(ctx).setNum(gpsDescData.getEquip());
@@ -424,7 +424,8 @@ public class GpsHandleServer {
 					}
 				});
 				//保存设备命令日志
-				saveOrderToLog(ctx, orderStr);
+
+
 			}
 			String dim3="";
 			if ("1".equals(flag)){
@@ -438,8 +439,6 @@ public class GpsHandleServer {
 		}else{
 			System.out.println("获取通道失败...");
 		}
-
-
 		//ctx.writeAndFlush(byteBuf);
 		return res;
 	}
