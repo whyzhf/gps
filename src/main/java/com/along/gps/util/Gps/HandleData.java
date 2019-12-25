@@ -277,7 +277,9 @@ public class HandleData {
 		Writer w = null;
 		BufferedWriter bw = null;
 		try {
-			String FileName = msg.getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
+			//String FileName = msg.getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd-HH").format(new Date())+ "-json.txt";
+			String FileName = msg.getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd").format(new Date())+ "-json.txt";
+			//String FileName = msg.getTaskId()+"-json.txt";
 			File dir = new File(SysUtil.WEB_DATA_LOCATION);
 			if (!dir.exists()) {
 				dir.mkdirs();

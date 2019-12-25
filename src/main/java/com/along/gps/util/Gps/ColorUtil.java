@@ -18,8 +18,14 @@ public class ColorUtil {
 			color = ColorUtil.COLORMAP.get(Integer.parseInt(equipCard)%21);
 		}
 		System.out.println(color);*/
-		System.out.println((StringToLong("2019-11-21 18:03:53", "yyyy-MM-dd HH:mm:ss")));
-		System.out.println((StringToLong("2019-11-21 18:03:53", "yyyy-MM-dd HH:mm:ss") + 1000 * 60 * 5));
+		/*String equipCard="799994";
+		int i = (Integer.parseInt(equipCard) % 11)+(Integer.parseInt(equipCard) % 10);
+		if(i==0){
+			i=Integer.parseInt(equipCard) % 21;
+		}
+		System.out.println(i);*/
+		//System.out.println((StringToLong("2019-11-21 18:03:53", "yyyy-MM-dd HH:mm:ss")));
+		//System.out.println((StringToLong("2019-11-21 18:03:53", "yyyy-MM-dd HH:mm:ss") + 1000 * 60 * 5));
 	}
 	public ColorUtil() {
 		COLORMAP.put(1,"#FFDAB9");//桃色

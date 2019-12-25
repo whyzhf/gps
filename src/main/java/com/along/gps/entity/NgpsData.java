@@ -64,13 +64,16 @@ public class NgpsData {
 	}
 
 	public void setColor(String equipCard) {
-		int i =1;
+		/*int i =1;
 		if(equipCard.length()>2) {
 			i = Integer.parseInt(equipCard.substring(equipCard.length() - 1,equipCard.length())) % 21;
 		}else{
 			i=Integer.parseInt(equipCard)%21;
+		}*/
+		int i = (Integer.parseInt(equipCard) % 11)+(Integer.parseInt(equipCard) % 10);
+		if(i==0){
+			i=Integer.parseInt(equipCard) % 21;
 		}
-
 		this.color = ColorUtil.COLORMAP.get(i);
 	}
 
