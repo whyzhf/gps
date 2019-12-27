@@ -39,7 +39,7 @@ public class UnicodeReader extends Reader {
 	 * @param defaultEnc default encoding if stream does not have
 	 *                   BOM marker. Give NULL to use system-level default.
 	 */
-	UnicodeReader(InputStream in, String defaultEnc) {
+	public UnicodeReader(InputStream in, String defaultEnc) {
 		internalIn = new PushbackInputStream(in, BOM_SIZE);
 		this.defaultEnc = defaultEnc;
 	}

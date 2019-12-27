@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static com.along.gps.controller.NettyWebSocketController.sendMessage2;
+import static com.along.gps.controller.NettyWebSocketController.sendMessageByApp;
 import static com.along.gps.util.Gps.ClientTest.initServer;
 import static com.along.gps.util.Gps.GpsHandleServer.*;
 import static com.along.gps.util.Order.EquipOrder.sendOrder;

@@ -1,12 +1,15 @@
 package com.along.gps.controller;
 
+import com.alibaba.druid.sql.visitor.functions.Isnull;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.along.gps.entity.GpsDescData;
 import com.along.gps.entity.WSgpsData;
 import com.along.gps.service.GpsService;
 import com.along.gps.util.Gps.HandleData.*;
 import com.along.gps.util.SysUtil;
 import com.along.gps.util.SystemUtil;
+import com.along.gps.util.UnicodeReader;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.timeout.IdleStateEvent;
 
@@ -21,6 +24,7 @@ import org.yeauty.pojo.Session;
 import javax.annotation.Resource;
 import javax.websocket.EncodeException;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 
@@ -48,7 +52,6 @@ public class NettyWebSocketController {
 
 		String taskId=parameterMap.getParameter("taskId");
 		String areaId=parameterMap.getParameter("areaId");
-
 		if(!"-1".equals(areaId)) {//将区域session保存在区域任务下
 			List<Integer> taskArea = gpsService.getTaskArea(areaId);
 			if (null!=taskArea && !taskArea.isEmpty()){
@@ -73,9 +76,10 @@ public class NettyWebSocketController {
 			set.add(session);
 			SystemUtil.NETTYSESSIONMAP.put(taskId, set);
 		}
-		/*if ("549".equals(taskId)&&"-1".equals(areaId)) {
-			sendMessageDemo( session);
-		}*/
+		//app测试专用
+		if ("584".equals(taskId)||"230184".equals(areaId)) {
+			sendMessageByApp();
+		}
 	}
 
 	@OnClose
@@ -125,6 +129,88 @@ public class NettyWebSocketController {
 		}
 	}
 
+	public static void main(String[] args) {
+		for (int i = 0; i < 5; i++) {
+			new Thread(()->{
+				sendMessageByApp();
+			}).start();
+
+		}
+
+
+
+
+	}
+	/**
+	 * 群发
+	 */
+	public static  void sendMessageByApp() {
+		File file = new File("/usr/tomcat/tomcat8/gps/data/AppCs-json.txt" );
+		if(file.renameTo(file)){
+			//System.out.println("文件未被操作");
+			String taskId="";
+			//	System.out.println("start.....");
+			FileInputStream fis = null;
+			UnicodeReader unicodeReader =null;
+			BufferedReader br = null;
+			try {
+				fis = new FileInputStream(file);
+				unicodeReader = new UnicodeReader(fis, Charset.defaultCharset().name());
+				br = new BufferedReader(unicodeReader);
+				String tempString=null;
+				while (( tempString = br.readLine()) != null) {
+					Thread.sleep(1000);
+					//System.out.println(br.readLine());
+					//br.readLine();
+					JSONObject jsonObject = JSONObject.parseObject(tempString);
+					taskId=jsonObject.get("taskId")+"";
+					Set<Session> sessionSet = SystemUtil.NETTYSESSIONMAP.get(taskId);
+					if (sessionSet!=null) {
+						Iterator<Session> it = sessionSet.iterator();
+						while (it.hasNext()) {
+							Session session = it.next();
+							if (session != null && session.isOpen()) {
+								session.sendText("{\"data\":"+getJsonStr(jsonObject)+"}");
+							}else if(session != null && !session.isOpen()){
+								it.remove();
+							}
+						}
+					}
+				}
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					unicodeReader.close();
+					fis.close();
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+			}
+		}else{
+			//System.out.println("文件正在被操作");
+
+		}
+		//获取session
+		/*Set<Session> sessionSet = SystemUtil.NETTYSESSIONMAP.get(wsData.getTaskId() + "");
+		if (sessionSet!=null) {
+			Iterator<Session> it = sessionSet.iterator();
+			while (it.hasNext()) {
+				Session session = it.next();
+				if (session != null && session.isOpen()) {
+					session.sendText("{\"data\":"+getJsonStr(wsData)+"}");
+				}else if(session != null && !session.isOpen()){
+					it.remove();
+				}
+			}
+		}*/
+	}
 	public static synchronized void sendMessageDemo(String string) {
 		//获取session
 		Set<Session> sessionSet = SystemUtil.NETTYSESSIONMAP.get("along");

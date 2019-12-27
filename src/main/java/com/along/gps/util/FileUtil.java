@@ -57,7 +57,7 @@ public class FileUtil {
 		Map<String,List<JSONObject>> map=new HashMap<>();
 		List<JSONObject> list=null;
 		int i=0;
-		long start = System.currentTimeMillis();
+	//	long start = System.currentTimeMillis();
 		File file = new File(path );
 		String equip="";
 	//	System.out.println("start.....");
@@ -91,8 +91,8 @@ public class FileUtil {
 		unicodeReader.close();
 		fis.close();
 		br.close();
-		long end = System.currentTimeMillis();
-		System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
+	//	long end = System.currentTimeMillis();
+	//	System.out.println(i/10000.0+" w条数据   readTxt1方法，使用内存="+(Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/ 1024 / 1024 + "M"+",使用时间秒="+(end-start)/1000.0+"s");
 
 		return resList;
 	}
