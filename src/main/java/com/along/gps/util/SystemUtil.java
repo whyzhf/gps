@@ -19,7 +19,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class SystemUtil {
     //记录请求用户角色
     public static Map<String, Set<Session>> sessionmap = new ConcurrentHashMap<>();
-	public static Map<String, Set<org.yeauty.pojo.Session>> NETTYSESSIONMAP = new ConcurrentHashMap<>();
+	public static Map<String, Set<org.yeauty.pojo.Session>>
+			NETTYSESSIONMAP = new ConcurrentHashMap<>();
     //记录用户发送命令
     public static Map<String,String> ORDERMAP = new ConcurrentHashMap<>();
     //设备异常命令

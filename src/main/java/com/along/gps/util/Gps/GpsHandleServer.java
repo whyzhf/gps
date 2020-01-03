@@ -16,10 +16,13 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.FixedLengthFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 import org.yeauty.pojo.Session;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +77,8 @@ public class GpsHandleServer {
 						public void initChannel(io.netty.channel.socket.SocketChannel ch) throws Exception {
 							// ch.pipeline().addLast(new
 							// GpsMsgEncoder(1024,3,2,10,0));//处理断包
+							//ch.pipeline().addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
+							//ch.pipeline().addLast(new ReadTimeoutHandler(30));//30s内没收到消息，就断掉连接
 							ch.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
 								@Override
 								protected void channelRead0(ChannelHandlerContext ctx, ByteBuf bf) throws Exception {
@@ -172,6 +177,7 @@ public class GpsHandleServer {
 									//System.out.println("msg:"+ msg);
 									super.channelRead(ctx, msg);
 								}
+
 							});
 						}
 					});

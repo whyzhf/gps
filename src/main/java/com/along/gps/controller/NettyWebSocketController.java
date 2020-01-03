@@ -85,6 +85,7 @@ public class NettyWebSocketController {
 	@OnClose
 	public void onClose(Session session) throws IOException {
 	//	System.out.println("one connection closed");
+
 		session.flush();
 		session.close();
 	}
@@ -136,16 +137,13 @@ public class NettyWebSocketController {
 			}).start();
 
 		}
-
-
-
-
 	}
 	/**
 	 * 群发
 	 */
 	public static  void sendMessageByApp() {
-		File file = new File("/usr/tomcat/tomcat8/gps/data/AppCs-json.txt" );
+		File file = new File("C:\\Users\\ALONG\\Desktop\\工作\\1225\\584-json.txt" );
+	//	File file = new File("/usr/tomcat/tomcat8/gps/data/AppCs-json.txt" );
 		if(file.renameTo(file)){
 			//System.out.println("文件未被操作");
 			String taskId="";
