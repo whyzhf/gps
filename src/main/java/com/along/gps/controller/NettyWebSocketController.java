@@ -52,6 +52,7 @@ public class NettyWebSocketController {
 
 		String taskId=parameterMap.getParameter("taskId");
 		String areaId=parameterMap.getParameter("areaId");
+
 		if(!"-1".equals(areaId)) {//将区域session保存在区域任务下
 			List<Integer> taskArea = gpsService.getTaskArea(areaId);
 			if (null!=taskArea && !taskArea.isEmpty()){
@@ -78,7 +79,11 @@ public class NettyWebSocketController {
 		}
 		//app测试专用
 		if ("584".equals(taskId)||"230184".equals(areaId)) {
-			sendMessageByApp();
+				new Thread(()->{
+					sendMessageByApp();
+				}).start();
+
+
 		}
 	}
 
@@ -141,11 +146,11 @@ public class NettyWebSocketController {
 	/**
 	 * 群发
 	 */
-	public static  void sendMessageByApp() {
-		File file = new File("C:\\Users\\ALONG\\Desktop\\工作\\1225\\584-json.txt" );
-	//	File file = new File("/usr/tomcat/tomcat8/gps/data/AppCs-json.txt" );
+	public static synchronized void sendMessageByApp() {
+		//File file = new File("C:\\Users\\ALONG\\Desktop\\工作\\1225\\584-json.txt" );
+		File file = new File("/usr/tomcat/tomcat8/gps/data/AppCs-json.txt" );
 		if(file.renameTo(file)){
-			//System.out.println("文件未被操作");
+
 			String taskId="";
 			//	System.out.println("start.....");
 			FileInputStream fis = null;
@@ -163,13 +168,18 @@ public class NettyWebSocketController {
 					JSONObject jsonObject = JSONObject.parseObject(tempString);
 					taskId=jsonObject.get("taskId")+"";
 					Set<Session> sessionSet = SystemUtil.NETTYSESSIONMAP.get(taskId);
+					System.out.println(sessionSet.size());
+					if(sessionSet.size()==0){
+						break;
+					}
 					if (sessionSet!=null) {
 						Iterator<Session> it = sessionSet.iterator();
 						while (it.hasNext()) {
 							Session session = it.next();
 							if (session != null && session.isOpen()) {
 								session.sendText("{\"data\":"+getJsonStr(jsonObject)+"}");
-							}else if(session != null && !session.isOpen()){
+
+							}else {
 								it.remove();
 							}
 						}

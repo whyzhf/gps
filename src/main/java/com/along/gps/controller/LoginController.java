@@ -326,4 +326,15 @@ public class LoginController {
         return "已开启gps发送";
     }*/
 
+
+    /**
+     * 模拟gps数据发送（测试用）
+     * @param request
+     * @return
+     */
+    @RequestMapping(value = "sendStri")
+    public String sendStri2(HttpServletRequest request,String Order,String card) {
+        sendStri(Order,card);
+        return "ok";
+    }
 }

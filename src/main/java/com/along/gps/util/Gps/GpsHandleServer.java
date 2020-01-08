@@ -16,8 +16,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.FixedLengthFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.util.CharsetUtil;
 import org.yeauty.pojo.Session;
 
 import java.util.*;
@@ -61,6 +63,7 @@ public class GpsHandleServer {
 		new ColorUtil();
 		//创建通道保存集合
 		ContextMap=new ConcurrentHashMap<>();
+
 		//开启数据存储线程
 		ThreadUtil.init();
 		EventLoopGroup group = new NioEventLoopGroup();// 连接服务对象
@@ -79,6 +82,7 @@ public class GpsHandleServer {
 							// GpsMsgEncoder(1024,3,2,10,0));//处理断包
 							//ch.pipeline().addLast(new IdleStateHandler(5, 0, 0, TimeUnit.SECONDS));
 							//ch.pipeline().addLast(new ReadTimeoutHandler(30));//30s内没收到消息，就断掉连接
+							//ch.pipeline().addLast(new StringEncoder());
 							ch.pipeline().addLast(new SimpleChannelInboundHandler<ByteBuf>() {
 								@Override
 								protected void channelRead0(ChannelHandlerContext ctx, ByteBuf bf) throws Exception {
@@ -384,6 +388,32 @@ public class GpsHandleServer {
 		}
 	}
 
+	public static void sendStri(String Order,String card) {
+		System.out.println("发送命令...");
+
+		/*byte[] bytes = Order.getBytes(CharsetUtil.UTF_8);
+		ByteBuf buf = Unpooled.wrappedBuffer(bytes);*/
+		ChannelHandlerContext ctx=getKeyByCard(ContextMap,card);
+
+		if(ctx!=null) {
+			//发送命令
+			ChannelFuture channelFuture = ctx.channel().writeAndFlush(Order);
+			channelFuture.addListener(new ChannelFutureListener() {
+				@Override
+				public void operationComplete(ChannelFuture channelFuture) throws Exception {
+					if (channelFuture.isSuccess()) {
+						System.out.println("ok...");
+						System.out.println("done.."+channelFuture.isDone());
+
+					} else {
+						//记录错误,重发一次
+						System.out.println("error");
+
+					}
+				}
+			});
+		}
+	}
 	/**
 	 *   String flag=pubParam.get("flag");//1:定点 2：间隔 3：持续
 	 *         String duration=pubParam.get("duration");//持续时间
