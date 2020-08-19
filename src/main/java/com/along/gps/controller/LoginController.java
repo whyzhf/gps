@@ -279,6 +279,7 @@ public class LoginController {
            /* if (resmap.get(taskId)!=null){
                 return resmap;
             }*/
+
             map.put("data",gpsService.getfile(taskId));
             return map;
         } catch (Exception e) {

@@ -148,7 +148,7 @@ public class NettyWebSocketController {
 	 */
 	public static synchronized void sendMessageByApp() {
 		//File file = new File("C:\\Users\\ALONG\\Desktop\\工作\\1225\\584-json.txt" );
-		File file = new File("/usr/tomcat/tomcat8/gps/data/AppCs-json.txt" );
+		File file = new File("/usr/tomcat/gps/data/AppCs-json.txt" );
 		if(file.renameTo(file)){
 
 			String taskId="";

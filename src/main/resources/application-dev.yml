@@ -3,9 +3,9 @@ spring:
   datasource:
     druid:
       driver-class-name: com.mysql.jdbc.Driver
-      url: jdbc:mysql://120.77.252.208:3306/outboundmanage?useUnicode=true&characterEncoding=utf8&useSSL=false
+      url: jdbc:mysql://172.18.65.129:3505/outboundmanage?useUnicode=true&characterEncoding=utf8&useSSL=false
       username: root
-      password: 123456
+      password: along123456
       #配置初始化大小/最小/最大
       initial-size: 1
       min-idle: 1

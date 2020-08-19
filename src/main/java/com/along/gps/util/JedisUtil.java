@@ -139,7 +139,7 @@ public class JedisUtil {
 
 		// redis未设置密码：
 
-		jedisPool = new JedisPool(config, SysUtil.REDIS_URL, 6379,10000,SysUtil.REDIS_PASSWORD);
+		jedisPool = new JedisPool(config, SysUtil.REDIS_URL, 6380,10000,SysUtil.REDIS_PASSWORD);
 
 	}
 

@@ -63,10 +63,8 @@ public class HandleData {
 	//gps to entity
 	private static NgpsData toEntity(String data) {
 		String[] arr = data.split(";");
-
 		NgpsData nd = new NgpsData();
 		nd.setEquip(arr[0]);//电话号码
-
 		//nd.setUptime(getNowData("yyyy-MM-dd HH:mm:ss"));
 		nd.setUptime(arr[9]);
 		nd.setDirection(Short.parseShort(arr[8]));
@@ -80,7 +78,6 @@ public class HandleData {
 		nd.setSpeed(Short.parseShort(arr[7]));
 
 		//通过电话号码在数据库查找card
-
 		String equipCard= handleData.gpsService.getEquipCard(arr[0]);
 		if(equipCard!=null && !equipCard.isEmpty()){
 
@@ -292,6 +289,42 @@ public class HandleData {
 			w = new FileWriter(f, true);
 			bw = new BufferedWriter(w);
 			bw.write(JSON.toJSONString(msg)+ "\r\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				bw.close();
+				w.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public static   void saveDatasToLog( List<WSgpsData> msg) {
+		Writer w = null;
+		BufferedWriter bw = null;
+		try {
+			String FileName = msg.get(0).getTaskId()+"-"+new SimpleDateFormat("yyyy-MM-dd").format(new Date())+ "-json.txt";
+			File dir = new File(SysUtil.WEB_DATA_LOCATION);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			// 写入文本
+			File f = new File(dir + "/" + FileName);
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+
+
+			w = new FileWriter(f, true);
+			bw = new BufferedWriter(w);
+			for (int i = 0; i < msg.size(); i++) {
+				bw.write(JSON.toJSONString(msg.get(i))+ "\r\n");
+			}
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

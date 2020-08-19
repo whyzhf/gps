@@ -3,12 +3,10 @@ package com.along.gps.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.along.gps.config.CacheExpire;
 import com.along.gps.dao.GpsDao;
-import com.along.gps.entity.HistData;
-import com.along.gps.entity.NgpsData;
-import com.along.gps.entity.OutboundRoadlog;
-import com.along.gps.entity.TaskEquip;
+import com.along.gps.entity.*;
 import com.along.gps.service.GpsService;
 import com.along.gps.util.FileUtil;
+import com.along.gps.util.Gps.HandleData;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.along.gps.util.FileUtil.*;
+import static com.along.gps.util.Gps.HandleData.saveDatasToLog;
 
 @Service
 public class GpsServiceImpl implements GpsService {
@@ -69,6 +68,16 @@ public class GpsServiceImpl implements GpsService {
 	public 	List<HistData> getfile(String taskId) {
 		try {
 		//	System.out.println("1111111");
+			List<HistData> data = getData(taskId);
+			if(null==data||data.size()<1){
+				List<WSgpsData> hisBySql = gpsDao.getHisBySql(Integer.valueOf(taskId));
+				if (hisBySql!=null&&hisBySql.size()>0) {
+					System.out.println("11111");
+					saveDatasToLog(hisBySql);
+				}
+			}else{
+				return data;
+			}
 			return getData(taskId);
 		} catch (Exception e) {
 			e.printStackTrace();

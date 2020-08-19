@@ -54,7 +54,7 @@ public static void initServer(int port){
 		SocketChannel sc = SocketChannel.open();
 		sc.configureBlocking(false);
 		sel = Selector.open();
-		boolean connect = sc.connect(new InetSocketAddress("120.77.252.208", port));
+		boolean connect = sc.connect(new InetSocketAddress("172.18.65.129", port));
 		//boolean connect = sc.connect(new InetSocketAddress("localhost", port));
 
 		sc.register(sel, SelectionKey.OP_CONNECT);

@@ -20,8 +20,8 @@ public interface GpsService {
 
 	boolean saveGpsLogData(List<NgpsData> list);
 
-	@Cacheable(value = "getPrisoner",key="#p0" ,unless="#result == null")
-	@CacheExpire(expire = 60*5)
+	/*@Cacheable(value = "getPrisoner",key="#p0" ,unless="#result == null")
+	@CacheExpire(expire = 60*5)*/
 	String getPrisoner( String id);
 
 	List<TaskEquip>  getEquipByTaskId(Integer taskId);
